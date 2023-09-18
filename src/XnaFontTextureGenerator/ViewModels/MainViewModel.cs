@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -38,6 +39,9 @@ public partial class MainViewModel : ViewModelBase
     private readonly IFontTextureRenderer _renderer;
     private readonly IMessageBox _messageBox;
     private readonly IDisposable _renderWorker;
+
+    private string[]? _chars;
+    private Rect[]? _rects;
 
     [ObservableProperty]
     private bool _lightMode;
@@ -92,6 +96,9 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private Bitmap? _texture;
+
+    [ObservableProperty]
+    private string? _tooltip;
 
 #if DEBUG
     public MainViewModel()
@@ -154,7 +161,7 @@ public partial class MainViewModel : ViewModelBase
 
         var metadata = GetTextureMetadata();
 
-        using (var bitmap = _renderer.Render(GenerateChars(), metadata))
+        using (var bitmap = _renderer.Render(GenerateChars(), metadata, out _))
         {
             await using var stream = await storageFile.OpenWriteAsync();
             bitmap.Save(stream);
@@ -214,6 +221,25 @@ public partial class MainViewModel : ViewModelBase
         OutlineColor = Color.FromUInt32(metadata.Outline?.Color ?? DefaultOutlineColor);
     }
 
+    [RelayCommand]
+    protected void MouseMove(PixelPoint? pixelPoint)
+    {
+        if (_rects != null && _chars != null && pixelPoint is PixelPoint p)
+        {
+            var point = new Point(p.X, p.Y);
+            var index = Array.FindIndex(_rects, r => r.Contains(point));
+
+            if (index >= 0)
+            {
+                var chr = _chars[index];
+                Tooltip = $"'{chr}' 0x{char.ConvertToUtf32(chr, 0):X}";
+                return;
+            }
+        }
+
+        Tooltip = null;
+    }
+
     private async Task RenderAsync(TextureMetadata metadata)
     {
         Rendering = true;
@@ -221,8 +247,7 @@ public partial class MainViewModel : ViewModelBase
 
         try
         {
-            var chars = GenerateChars();
-            Texture = await Task.Run(() => _renderer.Render(chars, metadata));
+            Texture = await Task.Run(() => _renderer.Render(_chars = GenerateChars(), metadata, out _rects));
             oldTexture?.Dispose();
         }
         finally
@@ -259,7 +284,8 @@ public partial class MainViewModel : ViewModelBase
 
         if (e.PropertyName != nameof(LightMode) &&
             e.PropertyName != nameof(Texture) &&
-            e.PropertyName != nameof(Rendering))
+            e.PropertyName != nameof(Rendering) &&
+            e.PropertyName != nameof(Tooltip))
         {
             _renderQueue.OnNext(GetTextureMetadata());
         }

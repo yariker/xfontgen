@@ -32,7 +32,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         ErrorPopup.IsOpen = true;
     }
 
-    public Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata)
+    public Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Rect[] rects)
     {
         const int border = 3;
         const int minWidth = 1;
@@ -52,13 +52,14 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         var foreground = new ImmutableSolidColorBrush(metadata.Foreground);
         var typeface = new Typeface(metadata.FontName, metadata.FontStyle, metadata.FontWeight, metadata.FontStretch);
         var glyphs = new FormattedText[chars.Count];
-        var rects = new Rect[chars.Count];
         var culture = CultureInfo.CurrentCulture;
 
         var x = border;
         var y = border;
         var textureHeight = border;
         var newLine = true;
+
+        rects = new Rect[chars.Count];
 
         for (var i = 0; i < chars.Count; i++)
         {

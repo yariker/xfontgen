@@ -59,16 +59,6 @@
             <Setter Property="Background" Value="{StaticResource LightCheckerboardBrush}" />
         </Style>
 
-        <Style Selector="#PreviewGlyphList > ContentPresenter">
-            <Setter Property="Margin" Value="1.6,1.6,0,0" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="ToolTip.Tip" Value="{Binding Converter={x:Static views:Converters.CharToHexConverter}}" />
-        </Style>
-
-        <Style Selector="ButtonSpinner > TextBox">
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-
         <Style Selector="TextBlock.h1">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Medium" />
@@ -293,12 +283,36 @@
                        Classes.dark="{Binding !LightMode}"
                        Classes.light="{Binding LightMode}">
                     <Image Name="Preview"
+                           PointerMoved=""
                            RenderOptions.BitmapInterpolationMode="None"
                            SizeChanged="OnImageSizeChanged"
-                           Source="{Binding Texture}" />
+                           Source="{Binding Texture}">
+                        <Interaction.Behaviors>
+                            <EventTriggerBehavior EventName="PointerMoved">
+                                <InvokeCommandAction Command="{Binding MouseMoveCommand}" InputConverter="{x:Static views:Converters.MousePointConverter}" />
+                            </EventTriggerBehavior>
+                            <EventTriggerBehavior EventName="PointerExited">
+                                <InvokeCommandAction Command="{Binding MouseMoveCommand}" />
+                            </EventTriggerBehavior>
+                        </Interaction.Behaviors>
+                    </Image>
                 </Panel>
 
             </ScrollViewer>
+
+            <Popup HorizontalOffset="20"
+                   IsOpen="{Binding Tooltip, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Placement="BottomEdgeAlignedLeft"
+                   VerticalOffset="-60">
+                <Border Padding="3"
+                        Background="White"
+                        BorderBrush="DimGray"
+                        BorderThickness="1">
+                    <TextBlock FontFamily="{x:Static FontFamily.Default}"
+                               Foreground="Black"
+                               Text="{Binding Tooltip}" />
+                </Border>
+            </Popup>
 
             <ToggleButton Margin="16"
                           HorizontalAlignment="Left"
@@ -317,7 +331,9 @@
                               IsActive="{Binding Rendering}"
                               IsHitTestVisible="False">
                 <apr:ProgressRing.Effect>
-                    <DropShadowEffect />
+                    <DropShadowEffect OffsetX="1"
+                                      OffsetY="1"
+                                      Opacity="0.3" />
                 </apr:ProgressRing.Effect>
             </apr:ProgressRing>
 
