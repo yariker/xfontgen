@@ -1,0 +1,346 @@
+<UserControl x:Class="XnaFontTextureGenerator.Views.MainView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:apr="clr-namespace:AvaloniaProgressRing;assembly=AvaloniaProgressRing"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:XnaFontTextureGenerator.ViewModels"
+             xmlns:views="clr-namespace:XnaFontTextureGenerator.Views"
+             d:DesignHeight="600"
+             d:DesignWidth="800"
+             x:DataType="viewModels:MainViewModel"
+             mc:Ignorable="d">
+
+    <Design.DataContext>
+        <viewModels:MainViewModel />
+    </Design.DataContext>
+
+    <UserControl.Resources>
+
+        <DrawingBrush x:Key="DarkCheckerboardBrush"
+                      DestinationRect="0,0,16,16"
+                      TileMode="Tile">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Black">
+                        <RectangleGeometry Rect="0,0,40,40" />
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#3F3F3F">
+                        <PathGeometry Figures="M0,20 L20,20 20,40 0,40 z M20,0 L40,0 40,20 20,20 z" />
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <DrawingBrush x:Key="LightCheckerboardBrush"
+                      DestinationRect="0,0,16,16"
+                      TileMode="Tile">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="White">
+                        <RectangleGeometry Rect="0,0,40,40" />
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#F0F0F0">
+                        <PathGeometry Figures="M0,20 L20,20 20,40 0,40 z M20,0 L40,0 40,20 20,20 z" />
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+
+        <Style x:SetterTargetType="Panel" Selector="#PreviewPanel.dark">
+            <Setter Property="Background" Value="{StaticResource DarkCheckerboardBrush}" />
+        </Style>
+
+        <Style x:SetterTargetType="Panel" Selector="#PreviewPanel.light">
+            <Setter Property="Background" Value="{StaticResource LightCheckerboardBrush}" />
+        </Style>
+
+        <Style Selector="#PreviewGlyphList > ContentPresenter">
+            <Setter Property="Margin" Value="1.6,1.6,0,0" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="ToolTip.Tip" Value="{Binding Converter={x:Static views:Converters.CharToHexConverter}}" />
+        </Style>
+
+        <Style Selector="ButtonSpinner > TextBox">
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="TextBlock.h1">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Margin" Value="0,0,0,3" />
+            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+        </Style>
+
+        <Style Selector="ToggleSwitch">
+            <Setter Property="OffContent" Value="{x:Null}" />
+            <Setter Property="OnContent" Value="{x:Null}" />
+        </Style>
+
+    </UserControl.Styles>
+
+    <DockPanel LastChildFill="True">
+
+        <DockPanel Width="300"
+                   Margin="6"
+                   DockPanel.Dock="Right"
+                   LastChildFill="False">
+
+            <TextBlock Margin="6"
+                       Classes="h1"
+                       DockPanel.Dock="Top"
+                       Text="Font" />
+
+            <ComboBox Margin="6"
+                      Padding="4,6"
+                      HorizontalAlignment="Stretch"
+                      DockPanel.Dock="Top"
+                      IsTextSearchEnabled="True"
+                      ItemsSource="{Binding FontNames}"
+                      SelectedItem="{Binding FontName}">
+                <ComboBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!--  Required to enable text search.  -->
+                        <StackPanel />
+                    </ItemsPanelTemplate>
+                </ComboBox.ItemsPanel>
+            </ComboBox>
+
+            <!--  Font style and size  -->
+            <DockPanel DockPanel.Dock="Top">
+
+                <NumericUpDown Width="70"
+                               Margin="6"
+                               DockPanel.Dock="Right"
+                               Minimum="1"
+                               Value="{Binding FontSize}" />
+
+                <ComboBox Margin="6"
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding FontStyles}"
+                          SelectedItem="{Binding CombinedFontStyle}" />
+
+            </DockPanel>
+
+            <!--  Min/max char  -->
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,*"
+                  DockPanel.Dock="Top">
+                <TextBox Grid.Column="0"
+                         Text="{Binding MinChar}"
+                         UseFloatingWatermark="True"
+                         Watermark="Min char" />
+                <TextBox Grid.Column="2"
+                         Text="{Binding MaxChar}"
+                         UseFloatingWatermark="True"
+                         Watermark="Max char" />
+            </Grid>
+
+            <!--  Antialiasing  -->
+            <CheckBox Name="AntialiasCheckBox"
+                      Margin="6"
+                      HorizontalAlignment="Stretch"
+                      Content="Antialiased"
+                      DockPanel.Dock="Top"
+                      IsChecked="{Binding Antialiased}" />
+
+            <Separator Margin="6" DockPanel.Dock="Top" />
+
+            <!--  Outline  -->
+            <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
+                <TextBlock Grid.Column="0"
+                           Margin="6"
+                           Classes="h1"
+                           Text="Outline" />
+                <ToggleSwitch Grid.Column="1"
+                              IsChecked="{Binding OutlineEnabled}"
+                              ToolTip.Tip="Toggle outline" />
+            </Grid>
+
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,Auto"
+                  DockPanel.Dock="Top"
+                  IsEnabled="{Binding OutlineEnabled}"
+                  RowDefinitions="*,*">
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Classes="label"
+                           Text="Width (px)" />
+                <NumericUpDown Grid.Row="1"
+                               Grid.Column="0"
+                               Increment="0.25"
+                               Minimum="0"
+                               Value="{Binding OutlineWidth}" />
+                <ColorPicker Grid.Row="1"
+                             Grid.Column="2"
+                             VerticalAlignment="Stretch"
+                             Color="{Binding OutlineColor}" />
+            </Grid>
+
+            <Separator Margin="6" DockPanel.Dock="Top" />
+
+            <!--  Shadow  -->
+            <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
+                <TextBlock Grid.Column="0"
+                           Margin="6"
+                           Classes="h1"
+                           Text="Shadow" />
+                <ToggleSwitch Grid.Column="1"
+                              IsChecked="{Binding ShadowEnabled}"
+                              ToolTip.Tip="Toggle drop shadow" />
+            </Grid>
+
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,*,12,*,12,Auto"
+                  DockPanel.Dock="Top"
+                  IsEnabled="{Binding ShadowEnabled}"
+                  RowDefinitions="*,*">
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Classes="label"
+                           Text="Blur" />
+                <NumericUpDown Grid.Row="1"
+                               Grid.Column="0"
+                               Minimum="0"
+                               Value="{Binding ShadowBlur}" />
+                <TextBlock Grid.Row="0"
+                           Grid.Column="2"
+                           Classes="label"
+                           Text="Offset X" />
+                <NumericUpDown Grid.Row="1"
+                               Grid.Column="2"
+                               Value="{Binding ShadowOffsetX}" />
+                <TextBlock Grid.Row="0"
+                           Grid.Column="4"
+                           Classes="label"
+                           Text="Offset Y" />
+                <NumericUpDown Grid.Row="1"
+                               Grid.Column="4"
+                               Value="{Binding ShadowOffsetY}" />
+                <TextBlock Grid.Row="0"
+                           Grid.Column="6"
+                           Classes="label"
+                           Text="Color" />
+                <ColorPicker Grid.Row="1"
+                             Grid.Column="6"
+                             VerticalAlignment="Stretch"
+                             Color="{Binding ShadowColor}" />
+            </Grid>
+
+            <Separator Margin="6" DockPanel.Dock="Top" />
+
+            <!--  Texture parameters  -->
+            <TextBlock Margin="6"
+                       Classes="h1"
+                       DockPanel.Dock="Top"
+                       Text="Texture" />
+
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,*"
+                  DockPanel.Dock="Top">
+                <TextBox Name="TextureWidthTextBox"
+                         Grid.Column="0"
+                         Text="{Binding TextureWidth}"
+                         UseFloatingWatermark="True"
+                         Watermark="Texture width (px)" />
+                <TextBox Name="TextureHeightTextBox"
+                         Grid.Column="2"
+                         Foreground="Gray"
+                         IsReadOnly="True"
+                         Text="0"
+                         UseFloatingWatermark="True"
+                         Watermark="Texture height (px)" />
+            </Grid>
+
+            <!--  Import/export buttons  -->
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,*"
+                  DockPanel.Dock="Bottom">
+
+                <Button Grid.Column="0"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding ImportCommand}"
+                        Content="Import..." />
+
+                <Button Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding ExportCommand}"
+                        Content="Export..." />
+            </Grid>
+
+        </DockPanel>
+
+        <Panel>
+
+            <ScrollViewer Name="ScrollArea"
+                          AllowAutoHide="False"
+                          Background="DarkGray"
+                          HorizontalScrollBarVisibility="Visible"
+                          VerticalScrollBarVisibility="Visible">
+
+                <Panel Name="PreviewPanel"
+                       Margin="100"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Classes.dark="{Binding !LightMode}"
+                       Classes.light="{Binding LightMode}">
+                    <Image Name="Preview"
+                           RenderOptions.BitmapInterpolationMode="None"
+                           SizeChanged="OnImageSizeChanged"
+                           Source="{Binding Texture}" />
+                </Panel>
+
+            </ScrollViewer>
+
+            <ToggleButton Margin="16"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          IsChecked="{Binding LightMode}"
+                          ToolTip.Tip="Toggle light/dark background">
+                <Rectangle Width="16"
+                           Height="16"
+                           Fill="{StaticResource LightCheckerboardBrush}" />
+            </ToggleButton>
+
+            <apr:ProgressRing Name="ProgressRing"
+                              Width="64"
+                              Height="64"
+                              Foreground="{DynamicResource ThemeAccentBrush}"
+                              IsActive="{Binding Rendering}"
+                              IsHitTestVisible="False">
+                <apr:ProgressRing.Effect>
+                    <DropShadowEffect />
+                </apr:ProgressRing.Effect>
+            </apr:ProgressRing>
+
+            <Popup Name="ErrorPopup"
+                   IsLightDismissEnabled="True"
+                   Placement="Center"
+                   PlacementTarget="{Binding $parent[Window]}"
+                   WindowManagerAddShadowHint="True">
+                <TextBlock Width="400"
+                           Padding="16"
+                           Background="OrangeRed"
+                           Foreground="White"
+                           Text="{Binding}"
+                           TextWrapping="Wrap" />
+                <Interaction.Behaviors>
+                    <EventTriggerBehavior EventName="PointerPressed">
+                        <ChangePropertyAction PropertyName="IsOpen" Value="False" />
+                    </EventTriggerBehavior>
+                </Interaction.Behaviors>
+            </Popup>
+
+        </Panel>
+
+    </DockPanel>
+
+</UserControl>

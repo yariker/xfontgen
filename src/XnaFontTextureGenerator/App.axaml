@@ -1,0 +1,43 @@
+<Application x:Class="XnaFontTextureGenerator.App"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:XnaFontTextureGenerator.Views"
+             RequestedThemeVariant="Default">
+
+    <Application.Styles>
+
+        <SimpleTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml"/>
+        <StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>
+
+        <Style Selector="ToolTip">
+            <Setter Property="FontFamily" Value="{x:Static FontFamily.Default}" />
+            <Setter Property="FontWeight" Value="Regular" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style Selector="DataValidationErrors">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Padding="{TemplateBinding Padding}"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      CornerRadius="{TemplateBinding CornerRadius}">
+                        <ToolTip.Tip>
+                            <Binding Converter="{x:Static views:Converters.ValidationErrorConverter}"
+                                     FallbackValue="{x:Null}"
+                                     Path="Owner.(DataValidationErrors.Errors)"
+                                     RelativeSource="{RelativeSource TemplatedParent}" />
+                        </ToolTip.Tip>
+                    </ContentPresenter>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+    </Application.Styles>
+
+</Application>
