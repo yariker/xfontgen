@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AssemblyName>xftgen</AssemblyName>
+    <AssemblyName>xfontgen</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
