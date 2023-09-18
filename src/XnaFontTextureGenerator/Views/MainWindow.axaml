@@ -9,7 +9,7 @@
         Height="600"
         MinWidth="500"
         MinHeight="600"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/Icon.ico"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
     <views:MainView Name="MainView" />

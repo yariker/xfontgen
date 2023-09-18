@@ -3,10 +3,10 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>xfontgen</AssemblyName>
+    <ApplicationIcon>..\XnaFontTextureGenerator\Assets\Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <Copyright>(c) Yaroslav Bugaria, $([System.DateTime]::Now.Year)</Copyright>
     <Nullable>enable</Nullable>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
