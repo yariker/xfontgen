@@ -250,6 +250,10 @@ public partial class MainViewModel : ViewModelBase
             Texture = await Task.Run(() => _renderer.Render(_chars = GenerateChars(), metadata, out _rects));
             oldTexture?.Dispose();
         }
+        catch (Exception ex)
+        {
+            _messageBox.Show(ex.ToString());
+        }
         finally
         {
             Rendering = false;

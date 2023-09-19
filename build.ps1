@@ -28,8 +28,6 @@ try
             -p:DebugType=None -p:DebugSymbols=false
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
-
-    dir "build" -Include "*.tgz","*.zip" -Recurse | move -Destination "build"
 }
 finally
 {

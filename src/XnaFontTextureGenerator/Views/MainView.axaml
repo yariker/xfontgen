@@ -342,12 +342,15 @@
                    Placement="Center"
                    PlacementTarget="{Binding $parent[Window]}"
                    WindowManagerAddShadowHint="True">
-                <TextBlock Width="400"
-                           Padding="16"
-                           Background="OrangeRed"
-                           Foreground="White"
-                           Text="{Binding}"
-                           TextWrapping="Wrap" />
+                <ScrollViewer Width="400"
+                              MaxHeight="400"
+                              VerticalScrollBarVisibility="Auto">
+                    <TextBlock Padding="16"
+                               Background="OrangeRed"
+                               Foreground="White"
+                               Text="{Binding}"
+                               TextWrapping="Wrap" />
+                </ScrollViewer>
                 <Interaction.Behaviors>
                     <EventTriggerBehavior EventName="PointerPressed">
                         <ChangePropertyAction PropertyName="IsOpen" Value="False" />
