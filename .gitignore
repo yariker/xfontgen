@@ -454,4 +454,7 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 
 # Build results
-build
+/build
+
+# Launch configurations
+launchSettings.json

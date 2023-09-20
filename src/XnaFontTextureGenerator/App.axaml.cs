@@ -1,5 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
@@ -21,31 +21,16 @@ public partial class App : Application
         // Without this line you will get duplicate validations from both Avalonia and CT
         BindingPlugins.DataValidators.RemoveAt(0);
 
-        TopLevel? topLevel;
-        MainView? mainView;
-
-        switch (ApplicationLifetime)
+        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime application)
         {
-            case IClassicDesktopStyleApplicationLifetime desktop:
-                var mainWindow = new MainWindow();
-                desktop.MainWindow = mainWindow;
-                mainView = mainWindow.MainView;
-                topLevel = mainWindow;
-                break;
-
-            case ISingleViewApplicationLifetime mobile:
-                mobile.MainView = mainView = new MainView();
-                topLevel = TopLevel.GetTopLevel(mainView);
-                break;
-
-            default:
-                return;
+            throw new PlatformNotSupportedException();
         }
 
-        if (mainView != null && topLevel != null)
-        {
-            mainView.DataContext = new MainViewModel(topLevel.StorageProvider, mainView, mainView);
-        }
+        var window = new MainWindow();
+        application.MainWindow = window;
+
+        var mainView = window.MainView;
+        mainView.DataContext = new MainViewModel(application, window.StorageProvider, mainView, mainView);
 
         base.OnFrameworkInitializationCompleted();
     }

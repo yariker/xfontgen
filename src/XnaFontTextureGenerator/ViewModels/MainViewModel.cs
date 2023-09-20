@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -35,6 +36,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly SynchronizationContext _synchronizationContext = SynchronizationContext.Current!;
     private readonly Subject<TextureMetadata> _renderQueue = new();
 
+    private readonly IClassicDesktopStyleApplicationLifetime _application;
     private readonly IStorageProvider _storageProvider;
     private readonly IFontTextureRenderer _renderer;
     private readonly IMessageBox _messageBox;
@@ -102,21 +104,28 @@ public partial class MainViewModel : ViewModelBase
 
 #if DEBUG
     public MainViewModel()
-        : this(null!, null!, null!)
+        : this(null!, null!, null!, null!)
     {
     }
 #endif
 
-    public MainViewModel(IStorageProvider storageProvider, IFontTextureRenderer renderer, IMessageBox messageBox)
+    public MainViewModel(
+        IClassicDesktopStyleApplicationLifetime application,
+        IStorageProvider storageProvider,
+        IFontTextureRenderer renderer,
+        IMessageBox messageBox)
     {
         if (!Design.IsDesignMode)
         {
+            ArgumentNullException.ThrowIfNull(application);
             ArgumentNullException.ThrowIfNull(storageProvider);
             ArgumentNullException.ThrowIfNull(renderer);
             ArgumentNullException.ThrowIfNull(messageBox);
         }
 
         _combinedFontStyle = new CombinedFontStyle("Regular", FontWeight.Normal, FontStretch.Normal, FontStyle.Normal);
+
+        _application = application;
         _storageProvider = storageProvider;
         _renderer = renderer;
         _messageBox = messageBox;
@@ -144,9 +153,19 @@ public partial class MainViewModel : ViewModelBase
     public IReadOnlyList<CombinedFontStyle> FontStyles { get; }
 
     [RelayCommand]
-    protected async Task ExportAsync()
+    protected async Task LoadAsync()
     {
-        var storageFile = await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        if (_application.Args is { Length: 1 } args)
+        {
+            var storageFile = await _storageProvider.TryGetFileFromPathAsync(args[0]);
+            await ImportAsync(storageFile);
+        }
+    }
+
+    [RelayCommand]
+    protected async Task ExportAsync(IStorageFile? storageFile = null)
+    {
+        storageFile ??= await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Export Font Texture",
             FileTypeChoices = new[] { FilePickerFileTypes.ImagePng },
@@ -159,66 +178,79 @@ public partial class MainViewModel : ViewModelBase
             return;
         }
 
-        var metadata = GetTextureMetadata();
-
-        using (var bitmap = _renderer.Render(GenerateChars(), metadata, out _))
+        try
         {
-            await using var stream = await storageFile.OpenWriteAsync();
-            bitmap.Save(stream);
-        }
+            var metadata = GetTextureMetadata();
 
-        // Append PNG metadata.
-        using var pngFile = TagLib.File.Create(storageFile.Path.LocalPath);
-        var pngTag = (PngTag)pngFile.GetTag(TagTypes.Png, true);
-        pngTag.Creator = TextureMetadata.Creator;
-        pngTag.SetKeyword(TextureMetadata.Keyword, metadata.ToJson());
-        pngFile.Save();
+            using (var bitmap = _renderer.Render(GenerateChars(), metadata, out _))
+            {
+                await using var stream = await storageFile.OpenWriteAsync();
+                bitmap.Save(stream);
+            }
+
+            // Append PNG metadata.
+            using var pngFile = TagLib.File.Create(storageFile.Path.LocalPath);
+            var pngTag = (PngTag)pngFile.GetTag(TagTypes.Png, true);
+            pngTag.Creator = TextureMetadata.Creator;
+            pngTag.SetKeyword(TextureMetadata.Keyword, metadata.ToJson());
+            pngFile.Save();
+        }
+        catch (Exception ex)
+        {
+            _messageBox.Show(ex.ToString());
+        }
     }
 
     [RelayCommand]
-    protected async Task ImportAsync()
+    protected async Task ImportAsync(IStorageFile? storageFile = null)
     {
-        var storageFiles = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        storageFile ??= (await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Font Texture",
             FileTypeFilter = new[] { FilePickerFileTypes.ImagePng },
             AllowMultiple = false,
-        });
+        })).SingleOrDefault();
 
-        var storageFile = storageFiles.SingleOrDefault();
         if (storageFile == null)
         {
             return;
         }
-        
-        // Parse PNG metadata.
-        using var pngFile = TagLib.File.Create(storageFile.Path.LocalPath);
 
-        var pngTag = (PngTag)pngFile.GetTag(TagTypes.Png, true);
-        var metadata = TextureMetadata.FromJson(pngTag.GetKeyword(TextureMetadata.Keyword));
-        if (metadata == null)
+        try
         {
-            _messageBox.Show($"XNA Font Texture Generator metadata not found in file '{storageFile.Name}'.");
-            return;
+            // Parse PNG metadata.
+            using var pngFile = TagLib.File.Create(storageFile.Path.LocalPath);
+
+            var pngTag = (PngTag)pngFile.GetTag(TagTypes.Png, true);
+            var metadata = TextureMetadata.FromJson(pngTag.GetKeyword(TextureMetadata.Keyword));
+            if (metadata == null)
+            {
+                _messageBox.Show($"XNA Font Texture Generator metadata not found in file '{storageFile.Name}'.");
+                return;
+            }
+
+            FontName = metadata.FontName;
+            FontSize = metadata.FontSize;
+            CombinedFontStyle = FontStyles.FirstOrDefault(x => x.IsMatch(metadata)) ?? FontStyles[0];
+            Antialiased = metadata.Antialiased;
+            MinChar = metadata.MinChar.ToString();
+            MaxChar = metadata.MaxChar.ToString();
+            TextureWidth = metadata.TextureWidth;
+
+            ShadowEnabled = metadata.DropShadow != null;
+            ShadowBlur = metadata.DropShadow?.Blur ?? DefaultShadowBlur;
+            ShadowOffsetX = metadata.DropShadow?.OffsetX ?? DefaultShadowOffsetX;
+            ShadowOffsetY = metadata.DropShadow?.OffsetY ?? DefaultShadowOffsetY;
+            ShadowColor = Color.FromUInt32(metadata.DropShadow?.Color ?? DefaultShadowColor);
+
+            OutlineEnabled = metadata.Outline != null;
+            OutlineWidth = metadata.Outline?.Width ?? DefaultOutlineWidth;
+            OutlineColor = Color.FromUInt32(metadata.Outline?.Color ?? DefaultOutlineColor);
         }
-
-        FontName = metadata.FontName;
-        FontSize = metadata.FontSize;
-        CombinedFontStyle = FontStyles.FirstOrDefault(x => x.IsMatch(metadata)) ?? FontStyles[0];
-        Antialiased = metadata.Antialiased;
-        MinChar = metadata.MinChar.ToString();
-        MaxChar = metadata.MaxChar.ToString();
-        TextureWidth = metadata.TextureWidth;
-
-        ShadowEnabled = metadata.DropShadow != null;
-        ShadowBlur = metadata.DropShadow?.Blur ?? DefaultShadowBlur;
-        ShadowOffsetX = metadata.DropShadow?.OffsetX ?? DefaultShadowOffsetX;
-        ShadowOffsetY = metadata.DropShadow?.OffsetY ?? DefaultShadowOffsetY;
-        ShadowColor = Color.FromUInt32(metadata.DropShadow?.Color ?? DefaultShadowColor);
-
-        OutlineEnabled = metadata.Outline != null;
-        OutlineWidth = metadata.Outline?.Width ?? DefaultOutlineWidth;
-        OutlineColor = Color.FromUInt32(metadata.Outline?.Color ?? DefaultOutlineColor);
+        catch (Exception ex)
+        {
+            _messageBox.Show(ex.ToString());
+        }
     }
 
     [RelayCommand]

@@ -77,6 +77,12 @@
 
     </UserControl.Styles>
 
+    <Interaction.Behaviors>
+        <EventTriggerBehavior EventName="Loaded">
+            <InvokeCommandAction Command="{Binding LoadCommand}" />
+        </EventTriggerBehavior>
+    </Interaction.Behaviors>
+
     <DockPanel LastChildFill="True">
 
         <DockPanel Width="300"
