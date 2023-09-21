@@ -11,7 +11,8 @@ try
 
     $Hash = git rev-parse --short HEAD
     $Version = [Version]::Parse($Tag.TrimStart('v'))
-    "$Version+$Hash"
+    
+    return @{ Prefix = $Version; Suffix = $Hash }
 }
 finally
 {

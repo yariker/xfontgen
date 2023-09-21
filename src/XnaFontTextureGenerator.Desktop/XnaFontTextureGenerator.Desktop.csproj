@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\XnaFontTextureGenerator\Assets\Icon.icns" Link="Icon.icns" Condition="'$(RuntimeIdentifier)'=='osx-x64'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="11.0.4" />
     <PackageReference Include="Dotnet.Bundle" Version="*" />
   </ItemGroup>
