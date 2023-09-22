@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\XnaFontTextureGenerator\Assets\Icon.icns" Link="Icon.icns" Condition="'$(RuntimeIdentifier)'=='osx-x64'">
+    <Content Include="..\XnaFontTextureGenerator\Assets\Icon.icns" Link="Icon.icns" Condition=" '$(RuntimeIdentifier)' == 'osx-x64' ">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>

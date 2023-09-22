@@ -2,13 +2,14 @@
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="clr-namespace:XnaFontTextureGenerator.Views"
+             Name="XNA Font Texture Generator"
              RequestedThemeVariant="Default">
 
     <Application.Styles>
 
         <SimpleTheme />
-        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml"/>
-        <StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml" />
+        <StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml" />
 
         <Style Selector="DataValidationErrors">
             <Setter Property="Template">
@@ -33,5 +34,9 @@
         </Style>
 
     </Application.Styles>
+
+    <NativeMenu.Menu>
+        <NativeMenu />
+    </NativeMenu.Menu>
 
 </Application>
