@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
-	  <Description>XNA Font Texture Generator</Description>
-	  <Copyright>(c) Yaroslav Bugaria, $([System.DateTime]::Now.Year)</Copyright>
-	  <Authors>Yaroslav Bugaria</Authors>
-	  <NeutralLanguage>en-US</NeutralLanguage>
-	  <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-	  <Nullable>enable</Nullable>
+    <Description>XNA Font Texture Generator</Description>
+    <Copyright>(c) Yaroslav Bugaria, $([System.DateTime]::Now.Year)</Copyright>
+    <Authors>Yaroslav Bugaria</Authors>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 </Project>
