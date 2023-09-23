@@ -179,6 +179,8 @@
                                Value="{Binding Leading}" />
             </Grid>
 
+            <Separator Margin="6" DockPanel.Dock="Top" />
+
             <!--  Outline  -->
             <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
                 <TextBlock Grid.Column="0"

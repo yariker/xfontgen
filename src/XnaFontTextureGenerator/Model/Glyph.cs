@@ -9,5 +9,7 @@ public struct Glyph
 
     public Point Offset { get; set; }
 
+    public FormattedText Text { get; set; }
+
     public Geometry Geometry { get; set; }
 }

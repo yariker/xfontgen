@@ -104,6 +104,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 
             glyphs[i] = new Glyph
             {
+                Text = text,
                 Geometry = glyph,
                 Rect = new Rect(x, y, width, height),
                 Offset = new Point(padding.Left - glyphBounds.Left, padding.Top),
@@ -200,6 +201,9 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
                              EdgeMode = metadata.Antialiased
                                  ? EdgeMode.Antialias
                                  : EdgeMode.Aliased,
+                             TextRenderingMode = metadata.Antialiased
+                                 ? TextRenderingMode.Antialias
+                                 : TextRenderingMode.Alias,
                          });
 
         var foreground = new ImmutableSolidColorBrush(metadata.Foreground);
@@ -227,7 +231,14 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
                     Matrix.CreateTranslation(glyph.Rect.X + glyph.Offset.X,
                                              glyph.Rect.Y + glyph.Offset.Y));
 
-                canvas.DrawGeometry(foreground, outline, glyph.Geometry);
+                if (metadata.Outline != null)
+                {
+                    canvas.DrawGeometry(foreground, outline, glyph.Geometry);
+                }
+                else
+                {
+                    canvas.DrawText(glyph.Text, default);
+                }
             }
         }
     }
