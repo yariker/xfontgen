@@ -42,6 +42,8 @@ public partial class MainViewModel : ViewModelBase
     private readonly IMessageBox _messageBox;
     private readonly IDisposable _renderWorker;
 
+    private CancellationTokenSource? _cancellationTokenSource;
+    private int _hoverIndex = -1;
     private string[]? _chars;
     private Glyph[]? _glyphs;
 
@@ -271,24 +273,44 @@ public partial class MainViewModel : ViewModelBase
 
             if (index >= 0)
             {
-                var chr = _chars[index];
-                Tooltip = $"'{chr}' 0x{char.ConvertToUtf32(chr, 0):X}";
+                if (index != _hoverIndex)
+                {
+                    var chr = _chars[index];
+                    Tooltip = $"'{chr}' 0x{GetCode(chr):X} ({char.GetUnicodeCategory(chr, 0)})";
+                    _hoverIndex = index;
+                }
+                
                 return;
             }
         }
 
         Tooltip = null;
+        _hoverIndex = -1;
+        return;
+
+        static uint GetCode(string c)
+        {
+            return c.Length == 1 ? c[0] : (uint)char.ConvertToUtf32(c, 0);
+        }
     }
 
     private async Task RenderAsync(TextureMetadata metadata)
     {
         Rendering = true;
         var oldTexture = Texture;
+        var cancellationToken = GetCancellationToken();
 
         try
         {
-            Texture = await Task.Run(() => _renderer.Render(_chars = GenerateChars(), metadata, out _glyphs));
+            Texture = await Task.Run(
+                () => _renderer.Render(_chars = GenerateChars(), metadata, out _glyphs, cancellationToken),
+                cancellationToken);
+
             oldTexture?.Dispose();
+        }
+        catch (OperationCanceledException)
+        {
+            // Canceled.
         }
         catch (Exception ex)
         {
@@ -300,21 +322,9 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    partial void OnMinCharChanging(string value)
-    {
-        if (ConvertChar(value) < char.MinValue)
-        {
-            throw new ArgumentOutOfRangeException($"Out of range value '{value}'.");
-        }
-    }
+    partial void OnMinCharChanging(string value) => ConvertChar(value);
 
-    partial void OnMaxCharChanging(string value)
-    {
-        if (ConvertChar(value) > char.MaxValue)
-        {
-            throw new ArgumentOutOfRangeException($"Out of range value '{value}'.");
-        }
-    }
+    partial void OnMaxCharChanging(string value) => ConvertChar(value);
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
@@ -331,8 +341,16 @@ public partial class MainViewModel : ViewModelBase
             e.PropertyName != nameof(Rendering) &&
             e.PropertyName != nameof(Tooltip))
         {
+            _cancellationTokenSource?.Cancel();
             _renderQueue.OnNext(GetTextureMetadata());
         }
+    }
+
+    private CancellationToken GetCancellationToken()
+    {
+        var newTokenSource = new CancellationTokenSource();
+        using var oldTokenSource = Interlocked.Exchange(ref _cancellationTokenSource, newTokenSource);
+        return newTokenSource.Token;
     }
 
     private string[] GenerateChars()
@@ -342,29 +360,36 @@ public partial class MainViewModel : ViewModelBase
         var count = maxChar - minChar + 1;
 
         return count > 0
-            ? Enumerable.Range(minChar, count).Select(c => ((char)c).ToString()).ToArray()
+            ? Enumerable.Range(minChar, count).Select(GetChar).ToArray()
             : Array.Empty<string>();
+
+        static string GetChar(int c)
+        {
+            return c is >= char.MinValue and <= char.MaxValue ? $"{(char)c}" : char.ConvertFromUtf32(c);
+        }
     }
 
     private static int ConvertChar(string value)
     {
-        if (value.StartsWith("0x", StringComparison.Ordinal) &&
-            int.TryParse(value[2..], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var hex))
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
+            uint.TryParse(value[2..], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var h))
         {
-            return hex;
+            return (int)h;
         }
 
-        if (int.TryParse(value, out var integer))
+        if (uint.TryParse(value, out var i))
         {
-            return integer;
+            return (int)i;
         }
 
-        if (value.Length == 1)
+        var v = value.Length switch
         {
-            return value[0];
-        }
+            1 => value[0],
+            2 => char.ConvertToUtf32(value[0], value[1]),
+            _ => throw new ArgumentException($"Invalid character/code '{value}'.")
+        };
 
-        throw new ArgumentException($"Invalid character code '{value}'.");
+        return v;
     }
 
     private TextureMetadata GetTextureMetadata()

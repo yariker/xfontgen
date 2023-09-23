@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Avalonia;
+using System.Threading;
 using Avalonia.Media.Imaging;
 using XnaFontTextureGenerator.Model;
 
@@ -7,5 +7,6 @@ namespace XnaFontTextureGenerator.Services;
 
 public interface IFontTextureRenderer
 {
-    Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Glyph[] glyphs);
+    Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Glyph[] glyphs,
+        CancellationToken cancellationToken = default);
 }

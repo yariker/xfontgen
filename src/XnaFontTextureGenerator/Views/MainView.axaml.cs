@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -32,7 +33,8 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         ErrorPopup.IsOpen = true;
     }
 
-    public Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Glyph[] glyphs)
+    public Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Glyph[] glyphs,
+        CancellationToken cancellationToken = default)
     {
         const int border = 3;
         const int minWidth = 1;
@@ -64,6 +66,8 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 
         for (var i = 0; i < chars.Count; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var chr = chars[i];
 
             // Replace control characters with placeholder.
@@ -121,7 +125,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         var bitmapSize = PixelSize.FromSizeWithDpi(size, RenderDpi);
         var imageInfo = new SKImageInfo(bitmapSize.Width, bitmapSize.Height);
 
-        using var glyphRender = RenderGlyphs(bitmapSize, glyphs, outline, metadata);
+        using var glyphRender = RenderGlyphs(bitmapSize, glyphs, outline, metadata, cancellationToken);
         using var glyphBitmap = ToSKBitmap(glyphRender);
 
         var bitmap = new WriteableBitmap(bitmapSize, glyphRender.Dpi);
@@ -190,7 +194,8 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         }
     }
 
-    private static Bitmap RenderGlyphs(PixelSize size, Glyph[] glyphs, IPen? outline, TextureMetadata metadata)
+    private static Bitmap RenderGlyphs(PixelSize size, Glyph[] glyphs, IPen? outline, TextureMetadata metadata,
+        CancellationToken cancellationToken = default)
     {
         var bitmap = new RenderTargetBitmap(size, new Vector(RenderDpi, RenderDpi));
         using var canvas = bitmap.CreateDrawingContext();
@@ -208,14 +213,22 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 
         var foreground = new ImmutableSolidColorBrush(metadata.Foreground);
 
-        if (metadata.Outline != null)
+        try
         {
-            // Geometry with Pen can only be rendered on UI thread.
-            Dispatcher.UIThread.Invoke(Render);
+            if (metadata.Outline != null)
+            {
+                // Geometry with Pen can only be rendered on UI thread.
+                Dispatcher.UIThread.Invoke(Render, DispatcherPriority.Send, cancellationToken);
+            }
+            else
+            {
+                Render();
+            }
         }
-        else
+        catch
         {
-            Render();
+            bitmap.Dispose();
+            throw;
         }
 
         return bitmap;
@@ -225,6 +238,8 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         {
             foreach (var glyph in glyphs)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 using var clip = canvas.PushClip(glyph.Rect);
 
                 using var translate = canvas.PushTransform(

@@ -116,6 +116,7 @@
                                Margin="6"
                                DockPanel.Dock="Right"
                                Minimum="1"
+                               ToolTip.Tip="Font size in points"
                                Value="{Binding FontSize}" />
 
                 <ComboBox Margin="6"
@@ -131,10 +132,12 @@
                   DockPanel.Dock="Top">
                 <TextBox Grid.Column="0"
                          Text="{Binding MinChar}"
+                         ToolTip.Tip="Enter letter or character code, decimal or hex prefixed with 0x"
                          UseFloatingWatermark="True"
                          Watermark="Min char" />
                 <TextBox Grid.Column="2"
                          Text="{Binding MaxChar}"
+                         ToolTip.Tip="Enter letter or character code, decimal or hex prefixed with 0x"
                          UseFloatingWatermark="True"
                          Watermark="Max char" />
             </Grid>
