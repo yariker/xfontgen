@@ -151,6 +151,8 @@ public partial class MainViewModel : ViewModelBase
         {
             _combinedFontStyle,
             new CombinedFontStyle("Italic", FontWeight.Normal, FontStretch.Normal, FontStyle.Italic),
+            new CombinedFontStyle("Semi Bold", FontWeight.SemiBold, FontStretch.Normal, FontStyle.Normal),
+            new CombinedFontStyle("Semi Bold, Italic", FontWeight.SemiBold, FontStretch.Normal, FontStyle.Italic),            
             new CombinedFontStyle("Bold", FontWeight.Bold, FontStretch.Normal, FontStyle.Normal),
             new CombinedFontStyle("Bold, Italic", FontWeight.Bold, FontStretch.Normal, FontStyle.Italic),
         };
