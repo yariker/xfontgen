@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -24,15 +23,6 @@ namespace XnaFontTextureGenerator.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    private const float DefaultFontSize = 30;
-    private const uint DefaultForegroundColor = 0xFFFFFFFF;
-    private const int DefaultShadowBlur = 3;
-    private const int DefaultShadowOffsetX = 1;
-    private const int DefaultShadowOffsetY = 1;
-    private const uint DefaultShadowColor = 0xFF000000;
-    private const float DefaultOutlineWidth = 1;
-    private const uint DefaultOutlineColor = 0xFFFF0000;
-
     private readonly SynchronizationContext _synchronizationContext = SynchronizationContext.Current!;
     private readonly Subject<TextureMetadata> _renderQueue = new();
 
@@ -57,10 +47,10 @@ public partial class MainViewModel : ViewModelBase
     private string _fontName = null!;
 
     [ObservableProperty]
-    private float _fontSize = DefaultFontSize;
+    private float _fontSize = TextureMetadata.DefaultFontSize;
 
     [ObservableProperty]
-    private Color _foreground = Color.FromUInt32(DefaultForegroundColor);
+    private Color _foreground = Color.FromUInt32(TextureMetadata.DefaultForegroundColor);
 
     [ObservableProperty]
     private bool _antialiased = true;
@@ -84,25 +74,25 @@ public partial class MainViewModel : ViewModelBase
     private bool _shadowEnabled;
 
     [ObservableProperty]
-    private float _shadowBlur = DefaultShadowBlur;
+    private float _shadowBlur = DropShadowMetadata.DefaultShadowBlur;
     
     [ObservableProperty]
-    private float _shadowOffsetX = DefaultShadowOffsetX;
+    private float _shadowOffsetX = DropShadowMetadata.DefaultShadowOffsetX;
 
     [ObservableProperty]
-    private float _shadowOffsetY = DefaultShadowOffsetY;
+    private float _shadowOffsetY = DropShadowMetadata.DefaultShadowOffsetY;
 
     [ObservableProperty]
-    private Color _shadowColor = Color.FromUInt32(DefaultShadowColor);
+    private Color _shadowColor = Color.FromUInt32(DropShadowMetadata.DefaultShadowColor);
 
     [ObservableProperty]
     private bool _outlineEnabled;
 
     [ObservableProperty]
-    private float _outlineWidth = DefaultOutlineWidth;
+    private float _outlineWidth = StrokeMetadata.DefaultOutlineWidth;
 
     [ObservableProperty]
-    private Color _outlineColor = Color.FromUInt32(DefaultOutlineColor);
+    private Color _outlineColor = Color.FromUInt32(StrokeMetadata.DefaultOutlineColor);
 
     [ObservableProperty]
     private int _textureWidth = 512;
@@ -134,7 +124,7 @@ public partial class MainViewModel : ViewModelBase
             ArgumentNullException.ThrowIfNull(messageBox);
         }
 
-        _combinedFontStyle = new CombinedFontStyle("Regular", FontWeight.Normal, FontStretch.Normal, FontStyle.Normal);
+        _combinedFontStyle = CombinedFontStyle.Styles[0];
 
         _application = application;
         _storageProvider = storageProvider;
@@ -149,16 +139,7 @@ public partial class MainViewModel : ViewModelBase
 
         FontNames = FontManager.Current.SystemFonts.Select(x => x.Name).ToArray();
         FontName = FontManager.Current.DefaultFontFamily.Name;
-
-        FontStyles = new[]
-        {
-            _combinedFontStyle,
-            new CombinedFontStyle("Italic", FontWeight.Normal, FontStretch.Normal, FontStyle.Italic),
-            new CombinedFontStyle("Semi Bold", FontWeight.SemiBold, FontStretch.Normal, FontStyle.Normal),
-            new CombinedFontStyle("Semi Bold, Italic", FontWeight.SemiBold, FontStretch.Normal, FontStyle.Italic),            
-            new CombinedFontStyle("Bold", FontWeight.Bold, FontStretch.Normal, FontStyle.Normal),
-            new CombinedFontStyle("Bold, Italic", FontWeight.Bold, FontStretch.Normal, FontStyle.Italic),
-        };
+        FontStyles = CombinedFontStyle.Styles;
     }
 
     public IReadOnlyList<string> FontNames { get; }
@@ -254,14 +235,14 @@ public partial class MainViewModel : ViewModelBase
             TextureWidth = metadata.TextureWidth;
 
             ShadowEnabled = metadata.DropShadow != null;
-            ShadowBlur = metadata.DropShadow?.Blur ?? DefaultShadowBlur;
-            ShadowOffsetX = metadata.DropShadow?.OffsetX ?? DefaultShadowOffsetX;
-            ShadowOffsetY = metadata.DropShadow?.OffsetY ?? DefaultShadowOffsetY;
-            ShadowColor = Color.FromUInt32(metadata.DropShadow?.Color ?? DefaultShadowColor);
+            ShadowBlur = metadata.DropShadow?.Blur ?? DropShadowMetadata.DefaultShadowBlur;
+            ShadowOffsetX = metadata.DropShadow?.OffsetX ?? DropShadowMetadata.DefaultShadowOffsetX;
+            ShadowOffsetY = metadata.DropShadow?.OffsetY ?? DropShadowMetadata.DefaultShadowOffsetY;
+            ShadowColor = Color.FromUInt32(metadata.DropShadow?.Color ?? DropShadowMetadata.DefaultShadowColor);
 
             OutlineEnabled = metadata.Outline != null;
-            OutlineWidth = metadata.Outline?.Width ?? DefaultOutlineWidth;
-            OutlineColor = Color.FromUInt32(metadata.Outline?.Color ?? DefaultOutlineColor);
+            OutlineWidth = metadata.Outline?.Width ?? StrokeMetadata.DefaultOutlineWidth;
+            OutlineColor = Color.FromUInt32(metadata.Outline?.Color ?? StrokeMetadata.DefaultOutlineColor);
         }
         catch (Exception ex)
         {
@@ -282,7 +263,7 @@ public partial class MainViewModel : ViewModelBase
                 if (index != _hoverIndex)
                 {
                     var chr = _chars[index];
-                    Tooltip = $"'{chr}' 0x{GetCode(chr):X} ({char.GetUnicodeCategory(chr, 0)})";
+                    Tooltip = $"'{chr}' 0x{CharHelper.ConvertToCode(chr):X} ({char.GetUnicodeCategory(chr, 0)})";
                     _hoverIndex = index;
                 }
                 
@@ -292,13 +273,25 @@ public partial class MainViewModel : ViewModelBase
 
         Tooltip = null;
         _hoverIndex = -1;
-        return;
+    }
 
-        static uint GetCode(string c)
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+
+        if (e.PropertyName != nameof(LightMode) &&
+            e.PropertyName != nameof(Texture) &&
+            e.PropertyName != nameof(Rendering) &&
+            e.PropertyName != nameof(Tooltip))
         {
-            return c.Length == 1 ? c[0] : (uint)char.ConvertToUtf32(c, 0);
+            _cancellationTokenSource?.Cancel();
+            _renderQueue.OnNext(GetTextureMetadata());
         }
     }
+
+    partial void OnMinCharChanging(string value) => CharHelper.ConvertToChar(value);
+
+    partial void OnMaxCharChanging(string value) => CharHelper.ConvertToChar(value);
 
     private async Task RenderAsync(TextureMetadata metadata)
     {
@@ -328,30 +321,6 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    partial void OnMinCharChanging(string value) => ConvertChar(value);
-
-    partial void OnMaxCharChanging(string value) => ConvertChar(value);
-
-    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(FontSize) && FontSize <= 0)
-        {
-            FontSize = 1;
-            return;
-        }
-
-        base.OnPropertyChanged(e);
-
-        if (e.PropertyName != nameof(LightMode) &&
-            e.PropertyName != nameof(Texture) &&
-            e.PropertyName != nameof(Rendering) &&
-            e.PropertyName != nameof(Tooltip))
-        {
-            _cancellationTokenSource?.Cancel();
-            _renderQueue.OnNext(GetTextureMetadata());
-        }
-    }
-
     private CancellationToken GetCancellationToken()
     {
         var newTokenSource = new CancellationTokenSource();
@@ -361,41 +330,9 @@ public partial class MainViewModel : ViewModelBase
 
     private string[] GenerateChars()
     {
-        var minChar = ConvertChar(MinChar);
-        var maxChar = ConvertChar(MaxChar);
-        var count = maxChar - minChar + 1;
-
-        return count > 0
-            ? Enumerable.Range(minChar, count).Select(GetChar).ToArray()
-            : Array.Empty<string>();
-
-        static string GetChar(int c)
-        {
-            return c is >= char.MinValue and <= char.MaxValue ? $"{(char)c}" : char.ConvertFromUtf32(c);
-        }
-    }
-
-    private static int ConvertChar(string value)
-    {
-        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
-            uint.TryParse(value[2..], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var h))
-        {
-            return (int)h;
-        }
-
-        if (uint.TryParse(value, out var i))
-        {
-            return (int)i;
-        }
-
-        var v = value.Length switch
-        {
-            1 => value[0],
-            2 => char.ConvertToUtf32(value[0], value[1]),
-            _ => throw new ArgumentException($"Invalid character/code '{value}'.")
-        };
-
-        return v;
+        var minChar = CharHelper.ConvertToChar(MinChar);
+        var maxChar = CharHelper.ConvertToChar(MaxChar);
+        return CharHelper.GetChars(minChar, maxChar);
     }
 
     private TextureMetadata GetTextureMetadata()
@@ -411,8 +348,8 @@ public partial class MainViewModel : ViewModelBase
             FontWeight = CombinedFontStyle.FontWeight,
             FontStretch = CombinedFontStyle.FontStretch,
             FontStyle = CombinedFontStyle.FontStyle,
-            MinChar = ConvertChar(MinChar),
-            MaxChar = ConvertChar(MaxChar),
+            MinChar = CharHelper.ConvertToChar(MinChar),
+            MaxChar = CharHelper.ConvertToChar(MaxChar),
             TextureWidth = TextureWidth,
             DropShadow = GetShadowMetadata(),
             Outline = GetStrokeMetadata(),

@@ -8,6 +8,9 @@ public record TextureMetadata
     public const string Creator = "XNA Font Texture Generator";
     public const string Keyword = "JSON:xftgen.metadata";
 
+    public const float DefaultFontSize = 30;
+    public const uint DefaultForegroundColor = 0xFFFFFFFF;
+
     public string FontName { get; set; } = null!;
 
     public FontWeight FontWeight { get; set; }

@@ -125,7 +125,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         var bitmapSize = PixelSize.FromSizeWithDpi(size, RenderDpi);
         var imageInfo = new SKImageInfo(bitmapSize.Width, bitmapSize.Height);
 
-        using var glyphRender = RenderGlyphs(bitmapSize, glyphs, outline, metadata, cancellationToken);
+        using var glyphRender = RenderGlyphs(bitmapSize, glyphs, foreground, outline, metadata, cancellationToken);
         using var glyphBitmap = ToSKBitmap(glyphRender);
 
         var bitmap = new WriteableBitmap(bitmapSize, glyphRender.Dpi);
@@ -194,8 +194,8 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         }
     }
 
-    private static Bitmap RenderGlyphs(PixelSize size, Glyph[] glyphs, IPen? outline, TextureMetadata metadata,
-        CancellationToken cancellationToken = default)
+    private static Bitmap RenderGlyphs(PixelSize size, Glyph[] glyphs, IBrush foreground, IPen? outline,
+        TextureMetadata metadata, CancellationToken cancellationToken = default)
     {
         var bitmap = new RenderTargetBitmap(size, new Vector(RenderDpi, RenderDpi));
         using var canvas = bitmap.CreateDrawingContext();
@@ -210,8 +210,6 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
                                  ? TextRenderingMode.Antialias
                                  : TextRenderingMode.Alias,
                          });
-
-        var foreground = new ImmutableSolidColorBrush(metadata.Foreground);
 
         try
         {
@@ -263,7 +261,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
     {
         (var geometry, bounds) = Dispatcher.UIThread.Invoke(() =>
         {
-            // Geometry can only be built on the UI thread.
+            // Geometry can only be built on UI thread.
             var geometry = text.BuildGeometry(default)!;
             var bounds = outline == null ? geometry.Bounds : geometry.GetRenderBounds(outline);
             return (geometry, bounds);
