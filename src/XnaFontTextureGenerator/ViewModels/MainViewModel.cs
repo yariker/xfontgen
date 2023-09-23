@@ -60,6 +60,9 @@ public partial class MainViewModel : ViewModelBase
     private float _fontSize = DefaultFontSize;
 
     [ObservableProperty]
+    private Color _foreground = Color.FromUInt32(DefaultForegroundColor);
+
+    [ObservableProperty]
     private bool _antialiased = true;
 
     [ObservableProperty]
@@ -241,6 +244,7 @@ public partial class MainViewModel : ViewModelBase
 
             FontName = metadata.FontName;
             FontSize = metadata.FontSize;
+            Foreground = Color.FromUInt32(metadata.Foreground);
             Kerning = metadata.Kerning;
             Leading = metadata.Leading;
             CombinedFontStyle = FontStyles.FirstOrDefault(x => x.IsMatch(metadata)) ?? FontStyles[0];
@@ -403,7 +407,7 @@ public partial class MainViewModel : ViewModelBase
             Kerning = Kerning,
             Leading = Leading,
             Antialiased = Antialiased,
-            Foreground = DefaultForegroundColor,
+            Foreground = Foreground.ToUInt32(),
             FontWeight = CombinedFontStyle.FontWeight,
             FontStretch = CombinedFontStyle.FontStretch,
             FontStyle = CombinedFontStyle.FontStyle,

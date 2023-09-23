@@ -219,6 +219,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             {
                 // Geometry with Pen can only be rendered on UI thread.
                 Dispatcher.UIThread.Invoke(Render, DispatcherPriority.Send, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
             }
             else
             {

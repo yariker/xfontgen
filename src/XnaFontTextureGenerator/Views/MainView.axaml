@@ -74,6 +74,10 @@
             <Setter Property="OnContent" Value="{x:Null}" />
         </Style>
 
+        <Style Selector="ColorPicker">
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+        </Style>
+
     </UserControl.Styles>
 
     <Interaction.Behaviors>
@@ -84,7 +88,7 @@
 
     <DockPanel LastChildFill="True">
 
-        <DockPanel Width="300"
+        <DockPanel Width="320"
                    Margin="6"
                    DockPanel.Dock="Right"
                    LastChildFill="False">
@@ -109,22 +113,21 @@
                 </ComboBox.ItemsPanel>
             </ComboBox>
 
-            <!--  Font style and size  -->
-            <DockPanel DockPanel.Dock="Top">
-
-                <NumericUpDown Width="80"
-                               Margin="6"
-                               DockPanel.Dock="Right"
-                               Minimum="1"
-                               ToolTip.Tip="Font size in points"
-                               Value="{Binding FontSize}" />
-
-                <ComboBox Margin="6"
-                          HorizontalAlignment="Stretch"
+            <!--  Font style, size, color  -->
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,*"
+                  DockPanel.Dock="Top">
+                <ComboBox Grid.Column="0"
                           ItemsSource="{Binding FontStyles}"
                           SelectedItem="{Binding CombinedFontStyle}" />
-
-            </DockPanel>
+                <Grid Grid.Column="2" ColumnDefinitions="*,12,*">
+                    <NumericUpDown Grid.Column="0"
+                                   Minimum="1"
+                                   ToolTip.Tip="Font size in points"
+                                   Value="{Binding FontSize}" />
+                    <ColorPicker Grid.Column="2" Color="{Binding Foreground}" />
+                </Grid>
+            </Grid>
 
             <!--  Min/max char  -->
             <Grid Margin="6"
@@ -211,7 +214,6 @@
                                Value="{Binding OutlineWidth}" />
                 <ColorPicker Grid.Row="1"
                              Grid.Column="2"
-                             VerticalAlignment="Stretch"
                              Color="{Binding OutlineColor}" />
             </Grid>
 
@@ -261,7 +263,6 @@
                            Text="Color" />
                 <ColorPicker Grid.Row="1"
                              Grid.Column="6"
-                             VerticalAlignment="Stretch"
                              Color="{Binding ShadowColor}" />
             </Grid>
 
@@ -291,7 +292,8 @@
             </Grid>
 
             <!--  Import/export buttons  -->
-            <Grid Margin="6"
+            <Grid MinHeight="25"
+                  Margin="6"
                   ColumnDefinitions="*,12,*"
                   DockPanel.Dock="Bottom">
 
