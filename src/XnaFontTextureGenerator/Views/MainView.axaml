@@ -6,7 +6,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:XnaFontTextureGenerator.ViewModels"
              xmlns:views="clr-namespace:XnaFontTextureGenerator.Views"
-             d:DesignHeight="600"
              d:DesignWidth="800"
              x:DataType="viewModels:MainViewModel"
              mc:Ignorable="d">
@@ -61,7 +60,7 @@
 
         <Style Selector="TextBlock.h1">
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style Selector="TextBlock.label">
@@ -113,7 +112,7 @@
             <!--  Font style and size  -->
             <DockPanel DockPanel.Dock="Top">
 
-                <NumericUpDown Width="70"
+                <NumericUpDown Width="80"
                                Margin="6"
                                DockPanel.Dock="Right"
                                Minimum="1"
@@ -149,6 +148,36 @@
                       IsChecked="{Binding Antialiased}" />
 
             <Separator Margin="6" DockPanel.Dock="Top" />
+
+            <!--  Spacing  -->
+            <TextBlock Margin="6"
+                       Classes="h1"
+                       DockPanel.Dock="Top"
+                       Text="Spacing" />
+
+            <Grid Margin="6"
+                  ColumnDefinitions="*,12,*"
+                  DockPanel.Dock="Top"
+                  RowDefinitions="*,*">
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Classes="label"
+                           Text="Kerning (px)" />
+                <NumericUpDown Grid.Row="1"
+                               Grid.Column="0"
+                               FormatString="F0"
+                               Minimum="0"
+                               Value="{Binding Kerning}" />
+                <TextBlock Grid.Row="0"
+                           Grid.Column="2"
+                           Classes="label"
+                           Text="Leading (px)" />
+                <NumericUpDown Grid.Row="1"
+                               Grid.Column="2"
+                               FormatString="F0"
+                               Minimum="0"
+                               Value="{Binding Leading}" />
+            </Grid>
 
             <!--  Outline  -->
             <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">

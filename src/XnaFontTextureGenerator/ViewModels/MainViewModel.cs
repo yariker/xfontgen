@@ -43,7 +43,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly IDisposable _renderWorker;
 
     private string[]? _chars;
-    private Rect[]? _rects;
+    private Glyph[]? _glyphs;
 
     [ObservableProperty]
     private bool _lightMode;
@@ -68,6 +68,12 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _maxChar = "126";
+
+    [ObservableProperty]
+    private int _kerning = 3;
+
+    [ObservableProperty]
+    private int _leading = 0;
 
     [ObservableProperty]
     private bool _shadowEnabled;
@@ -155,7 +161,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     protected async Task LoadAsync()
     {
-        if (_application.Args is { Length: 1 } args)
+        if (!Design.IsDesignMode && _application.Args is { Length: 1 } args)
         {
             var storageFile = await _storageProvider.TryGetFileFromPathAsync(args[0]);
             await ImportAsync(storageFile);
@@ -231,6 +237,8 @@ public partial class MainViewModel : ViewModelBase
 
             FontName = metadata.FontName;
             FontSize = metadata.FontSize;
+            Kerning = metadata.Kerning;
+            Leading = metadata.Leading;
             CombinedFontStyle = FontStyles.FirstOrDefault(x => x.IsMatch(metadata)) ?? FontStyles[0];
             Antialiased = metadata.Antialiased;
             MinChar = metadata.MinChar.ToString();
@@ -256,10 +264,10 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     protected void MouseMove(PixelPoint? pixelPoint)
     {
-        if (_rects != null && _chars != null && pixelPoint is PixelPoint p)
+        if (_glyphs != null && _chars != null && pixelPoint is PixelPoint p)
         {
             var point = new Point(p.X, p.Y);
-            var index = Array.FindIndex(_rects, r => r.Contains(point));
+            var index = Array.FindIndex(_glyphs, g => g.Rect.Contains(point));
 
             if (index >= 0)
             {
@@ -279,7 +287,7 @@ public partial class MainViewModel : ViewModelBase
 
         try
         {
-            Texture = await Task.Run(() => _renderer.Render(_chars = GenerateChars(), metadata, out _rects));
+            Texture = await Task.Run(() => _renderer.Render(_chars = GenerateChars(), metadata, out _glyphs));
             oldTexture?.Dispose();
         }
         catch (Exception ex)
@@ -365,6 +373,8 @@ public partial class MainViewModel : ViewModelBase
         {
             FontName = FontName,
             FontSize = FontSize,
+            Kerning = Kerning,
+            Leading = Leading,
             Antialiased = Antialiased,
             Foreground = DefaultForegroundColor,
             FontWeight = CombinedFontStyle.FontWeight,

@@ -1,5 +1,4 @@
-﻿using System;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
@@ -21,16 +20,14 @@ public partial class App : Application
         // Without this line you will get duplicate validations from both Avalonia and CT
         BindingPlugins.DataValidators.RemoveAt(0);
 
-        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime application)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime application)
         {
-            throw new PlatformNotSupportedException();
+            var window = new MainWindow();
+            application.MainWindow = window;
+
+            var mainView = window.MainView;
+            mainView.DataContext = new MainViewModel(application, window.StorageProvider, mainView, mainView);
         }
-
-        var window = new MainWindow();
-        application.MainWindow = window;
-
-        var mainView = window.MainView;
-        mainView.DataContext = new MainViewModel(application, window.StorageProvider, mainView, mainView);
 
         base.OnFrameworkInitializationCompleted();
     }

@@ -18,6 +18,10 @@ public record TextureMetadata
 
     public float FontSize { get; set; }
 
+    public int Kerning { get; set; }
+
+    public int Leading { get; set; }
+
     public int MinChar { get; set; }
 
     public int MaxChar { get; set; }

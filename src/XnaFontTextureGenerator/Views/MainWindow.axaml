@@ -6,9 +6,9 @@
         xmlns:views="clr-namespace:XnaFontTextureGenerator.Views"
         Title="XNA Font Texture Generator"
         Width="800"
-        Height="600"
+        Height="670"
         MinWidth="500"
-        MinHeight="600"
+        MinHeight="670"
         Icon="/Assets/Icon.ico"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">

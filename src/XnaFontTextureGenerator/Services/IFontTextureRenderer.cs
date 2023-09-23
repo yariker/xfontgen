@@ -7,5 +7,5 @@ namespace XnaFontTextureGenerator.Services;
 
 public interface IFontTextureRenderer
 {
-    Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Rect[] rects);
+    Bitmap Render(IReadOnlyList<string> chars, TextureMetadata metadata, out Glyph[] glyphs);
 }
