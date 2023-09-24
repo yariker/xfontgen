@@ -4,7 +4,7 @@ Push-Location $PSScriptRoot
 
 try
 {
-    if ([System.Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
 
         $Cygwin = "$env:SystemDrive\cygwin64\bin";
 
@@ -14,7 +14,7 @@ try
         }
 
         if (($env:Path -split ';') -notcontains $Cygwin) {
-            $env:Path = $env:Path.TrimEnd(';') + ";" + $Cygwin
+            $env:Path = $Cygwin + ";" + $env:Path
         }
     }
 
