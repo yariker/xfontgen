@@ -65,10 +65,10 @@ public partial class MainViewModel : ViewModelBase
     private string _maxChar = "126";
 
     [ObservableProperty]
-    private int _kerning = 3;
+    private int _kerning = TextureMetadata.AutomaticKerning;
 
     [ObservableProperty]
-    private int _leading = 0;
+    private int _leading;
 
     [ObservableProperty]
     private bool _shadowEnabled;

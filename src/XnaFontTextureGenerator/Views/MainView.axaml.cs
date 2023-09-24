@@ -195,12 +195,23 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 
             if (width == 0)
             {
-                // Special case for a whitespace character.
+                // Special case for whitespace.
                 width = Math.Max(minWidth, (int)Math.Ceiling(text.WidthIncludingTrailingWhitespace));
             }
             else
             {
-                width += (int)Math.Ceiling(padding.Left + padding.Right);
+                var paddingRight = padding.Right;
+
+                if (metadata.Kerning == TextureMetadata.AutomaticKerning)
+                {
+                    var kerning = text.WidthIncludingTrailingWhitespace - glyphBounds.Width;
+                    if (kerning > paddingRight)
+                    {
+                        paddingRight = kerning;
+                    }
+                }
+
+                width += (int)Math.Ceiling(padding.Left + paddingRight);
             }
 
             height += (int)Math.Ceiling(padding.Top + padding.Bottom);

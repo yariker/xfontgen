@@ -174,7 +174,8 @@
                 <NumericUpDown Grid.Row="1"
                                Grid.Column="0"
                                FormatString="F0"
-                               Minimum="0"
+                               Minimum="-1"
+                               TextConverter="{x:Static views:Converters.KerningConverter}"
                                Value="{Binding Kerning}" />
                 <TextBlock Grid.Row="0"
                            Grid.Column="2"

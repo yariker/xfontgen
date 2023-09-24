@@ -11,6 +11,8 @@ public record TextureMetadata
     public const float DefaultFontSize = 30;
     public const uint DefaultForegroundColor = 0xFFFFFFFF;
 
+    public const int AutomaticKerning = -1;
+
     public string FontName { get; set; } = null!;
 
     public FontWeight FontWeight { get; set; }
