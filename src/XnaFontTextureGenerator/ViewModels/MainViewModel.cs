@@ -256,7 +256,7 @@ public partial class MainViewModel : ViewModelBase
         if (_glyphs != null && _chars != null && pixelPoint is PixelPoint p)
         {
             var point = new Point(p.X, p.Y);
-            var index = Array.FindIndex(_glyphs, g => g.Rect.Contains(point));
+            var index = FindGlyph(point);
 
             if (index >= 0)
             {
@@ -333,6 +333,21 @@ public partial class MainViewModel : ViewModelBase
         var minChar = CharHelper.ConvertToChar(MinChar);
         var maxChar = CharHelper.ConvertToChar(MaxChar);
         return CharHelper.GetChars(minChar, maxChar);
+    }
+
+    private int FindGlyph(Point point)
+    {
+        var span = _glyphs.AsSpan();
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            if (span[i].Rect.Contains(point))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private TextureMetadata GetTextureMetadata()

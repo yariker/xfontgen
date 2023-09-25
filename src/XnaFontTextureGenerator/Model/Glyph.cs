@@ -12,4 +12,6 @@ public struct Glyph
     public FormattedText Text { get; set; }
 
     public Geometry Geometry { get; set; }
+
+    public GlyphKinds Kind { get; set; }
 }

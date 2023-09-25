@@ -20,7 +20,7 @@ namespace XnaFontTextureGenerator.Views;
 
 public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 {
-    private const double RenderDpi = 96.0;
+    private static readonly Vector RenderDpi = new(96.0, 96.0);
 
     public MainView()
     {
@@ -41,7 +41,8 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         //
 
         var outline = GetPen(metadata.Outline);
-        var alphaMaskMode = outline == null && metadata.Foreground > 0;
+        var fontBrush = new ImmutableSolidColorBrush(metadata.Foreground);
+        var alphaMaskMode = outline == null && metadata is { Foreground: > 0, Antialiased: true };
 
         IBrush? background;
         IBrush foreground;
@@ -58,24 +59,23 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         else
         {
             background = null;
-            foreground = new ImmutableSolidColorBrush(metadata.Foreground);
+            foreground = fontBrush;
         }
 
-        (glyphs, var size) = Arrange(chars, metadata, foreground, cancellationToken);
+        (glyphs, var glyphKinds, var size) = Arrange(chars, metadata, foreground, cancellationToken);
 
         //
         // Draw.
         //
 
-        var imageInfo = new SKImageInfo(size.Width, size.Height);
+        using var glyphBitmap = Render(size, glyphs, GlyphKinds.Regular, background, foreground,
+                                       outline, metadata, true, cancellationToken);
 
-        using var glyphRender = Render(size, glyphs, background, foreground, outline, metadata, cancellationToken);
-        using var glyphBitmap = ToSKBitmap(glyphRender);
-
-        var bitmap = new WriteableBitmap(size, glyphRender.Dpi);
+        var bitmap = new WriteableBitmap(size, RenderDpi);
         using var bitmapBuffer = bitmap.Lock();
 
         // Background.
+        var imageInfo = new SKImageInfo(size.Width, size.Height);
         using var surface = SKSurface.Create(imageInfo, bitmapBuffer.Address, bitmapBuffer.RowBytes);
         surface.Canvas.Clear(SKColors.Fuchsia);
 
@@ -83,74 +83,55 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         backgroundPaint.Color = SKColors.Transparent;
         backgroundPaint.BlendMode = SKBlendMode.Clear;
 
-        foreach (var glyph in glyphs)
+        foreach (var glyph in glyphs.AsSpan())
         {
             surface.Canvas.DrawRect(glyph.Rect.ToSKRect(), backgroundPaint);
         }
 
         // Glyphs.
-        using var foregroundPaint = new SKPaint();
-        foregroundPaint.BlendMode = SKBlendMode.DstOver;
+        using var glyphPaint = new SKPaint();
+        glyphPaint.BlendMode = SKBlendMode.DstOver;
 
         if (alphaMaskMode)
         {
-            using var tintFilter = SKColorFilter.CreateBlendMode(metadata.Foreground, SKBlendMode.SrcATop);
-            using var invertFilter = SKColorFilter.CreateBlendMode(SKColors.White, SKBlendMode.SrcOut);
+            using var tintFilter = SKColorFilter.CreateBlendMode(metadata.Foreground, SKBlendMode.SrcOut);
             using var maskFilter = SKColorFilter.CreateLumaColor();
-
-            using var innerFilter = SKColorFilter.CreateCompose(invertFilter, maskFilter);
-            using var outerFilter = SKColorFilter.CreateCompose(tintFilter, innerFilter);
-
-            foregroundPaint.ColorFilter = outerFilter;
+            using var colorFilter = SKColorFilter.CreateCompose(tintFilter, maskFilter);
+            glyphPaint.ColorFilter = colorFilter;
         }
 
         if (metadata.DropShadow != null)
         {
-            foregroundPaint.ImageFilter = SKImageFilter.CreateDropShadow(
+            using var dropShadow = SKImageFilter.CreateDropShadow(
                 metadata.DropShadow.OffsetX, metadata.DropShadow.OffsetY,
                 metadata.DropShadow.Blur, metadata.DropShadow.Blur,
                 metadata.DropShadow.Color);
+
+            glyphPaint.ImageFilter = dropShadow;
         }
-        
-        surface.Canvas.DrawBitmap(glyphBitmap, 0, 0, foregroundPaint);
+
+        surface.Canvas.DrawBitmap(glyphBitmap, 0, 0, glyphPaint);
+
+        // Emojis.
+        if (glyphKinds.HasFlag(GlyphKinds.Emoji))
+        {
+            using var emojiPaint = new SKPaint();
+            emojiPaint.ImageFilter = glyphPaint.ImageFilter;
+            emojiPaint.BlendMode = SKBlendMode.DstOver;
+
+            using var emojiBitmap = Render(size, glyphs, GlyphKinds.Emoji, null, fontBrush,
+                                           outline, metadata, false, CancellationToken.None /* Too late to cancel */);
+
+            surface.Canvas.DrawBitmap(emojiBitmap, 0, 0, emojiPaint);
+        }
+
         surface.Flush();
 
         return bitmap;
     }
 
-    private async void OnImageSizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel == null)
-        {
-            return;
-        }
-
-        var bitmap = Preview.Source;
-        if (bitmap == null)
-        {
-            return;
-        }
-
-        // Adjust image size to match device pixels.
-        var bitmapSize = bitmap.Size;
-        var width = bitmapSize.Width / topLevel.RenderScaling;
-
-        TextureHeightTextBox.Text = $"{Math.Ceiling(bitmapSize.Height)}";
-
-        if (double.IsNaN(Preview.Width) || Math.Abs(Preview.Width - width) > LayoutHelper.LayoutEpsilon)
-        {
-            Preview.Width = width;
-
-            // Wait for layout pass.
-            await Task.Yield();
-
-            ScrollArea.Offset = new Vector(ScrollArea.ScrollBarMaximum.X / 2, ScrollArea.Offset.Y);
-        }
-    }
-
-    private static (Glyph[], PixelSize) Arrange(IReadOnlyList<string> chars, TextureMetadata metadata, IBrush foreground,
-        CancellationToken cancellationToken)
+    private static (Glyph[], GlyphKinds, PixelSize) Arrange(IReadOnlyList<string> chars, TextureMetadata metadata,
+        IBrush foreground, CancellationToken cancellationToken)
     {
         const int border = 3;
         const int minWidth = 1;
@@ -174,6 +155,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         var textureHeight = border;
         var newLine = true;
 
+        var glyphKinds = GlyphKinds.None;
         var glyphs = new Glyph[chars.Count];
 
         for (var i = 0; i < chars.Count; i++)
@@ -185,12 +167,12 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             // Replace control characters with placeholder.
             if (chr.Length == 1 && char.IsControl(chr, 0))
             {
-                chr = "\u25A1";
+                chr = CharHelper.Placeholder;
             }
 
             var text = new FormattedText(chr, culture, flow, typeface, metadata.FontSize, foreground);
             var height = (int)Math.Ceiling(text.Height);
-            var glyph = GetGeometry(text, outline, out var glyphBounds);
+            var geometry = GetGeometry(text, outline, out var glyphBounds);
             var width = (int)Math.Ceiling(glyphBounds.Width);
 
             if (width == 0)
@@ -229,24 +211,28 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
                 newLine = false;
             }
 
-            glyphs[i] = new Glyph
+            var glyph = new Glyph
             {
                 Text = text,
-                Geometry = glyph,
+                Geometry = geometry,
                 Rect = new Rect(x, y, width, height),
                 Offset = new Point(padding.Left - glyphBounds.Left, padding.Top),
+                Kind = CharHelper.GetKind(chr),
             };
 
             x += width + border;
+            glyphKinds |= glyph.Kind;
+            glyphs[i] = glyph;
         }
 
-        return (glyphs, new PixelSize(metadata.TextureWidth, textureHeight));
+        return (glyphs, glyphKinds, new PixelSize(metadata.TextureWidth, textureHeight));
     }
 
-    private static Bitmap Render(PixelSize size, Glyph[] glyphs, IBrush? background, IBrush foreground,
-        IPen? outline, TextureMetadata metadata, CancellationToken cancellationToken)
+    private static SKBitmap Render(PixelSize size, Glyph[] glyphs, GlyphKinds kinds, IBrush? background, 
+        IBrush foreground, IPen? outline, TextureMetadata metadata, bool subpixel,
+        CancellationToken cancellationToken)
     {
-        var bitmap = new RenderTargetBitmap(size, new Vector(RenderDpi, RenderDpi));
+        using var bitmap = new RenderTargetBitmap(size, RenderDpi);
         using var canvas = bitmap.CreateDrawingContext();
 
         if (background != null)
@@ -254,43 +240,40 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             canvas.FillRectangle(background, new Rect(bitmap.Size));
         }
 
-        SetRenderOptions(canvas,
-                         options => options with
-                         {
-                             EdgeMode = metadata.Antialiased
-                                 ? EdgeMode.Antialias
-                                 : EdgeMode.Aliased,
-                             TextRenderingMode = metadata.Antialiased
-                                 ? TextRenderingMode.SubpixelAntialias
-                                 : TextRenderingMode.Alias,
-                         });
+        canvas.SetRenderOptions(
+            options => options with
+            {
+                EdgeMode = metadata.Antialiased
+                    ? EdgeMode.Antialias
+                    : EdgeMode.Aliased,
+                TextRenderingMode = metadata.Antialiased
+                    ? subpixel ? TextRenderingMode.SubpixelAntialias : TextRenderingMode.Antialias
+                    : TextRenderingMode.Alias,
+            });
 
-        try
+        if (outline != null)
         {
-            if (metadata.Outline != null)
-            {
-                // Geometry with Pen can only be rendered on UI thread.
-                Dispatcher.UIThread.Invoke(Draw, DispatcherPriority.Send, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-            else
-            {
-                Draw();
-            }
+            // Geometry with Pen can only be rendered on UI thread.
+            Dispatcher.UIThread.Invoke(Draw, DispatcherPriority.Send, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
         }
-        catch
+        else
         {
-            bitmap.Dispose();
-            throw;
+            Draw();
         }
 
-        return bitmap;
+        return bitmap.ToSKBitmap();
 
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         void Draw()
         {
-            foreach (var glyph in glyphs)
+            foreach (var glyph in glyphs.AsSpan())
             {
+                if (!kinds.HasFlag(glyph.Kind))
+                {
+                    continue;
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var clip = canvas.PushClip(glyph.Rect);
@@ -299,12 +282,13 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
                     Matrix.CreateTranslation(glyph.Rect.X + glyph.Offset.X,
                                              glyph.Rect.Y + glyph.Offset.Y));
 
-                if (metadata.Outline != null)
+                if (outline != null)
                 {
                     canvas.DrawGeometry(foreground, outline, glyph.Geometry);
                 }
                 else
                 {
+                    glyph.Text.SetForegroundBrush(foreground);
                     canvas.DrawText(glyph.Text, default);
                 }
             }
@@ -332,19 +316,34 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             : null;
     }
 
-    private static void SetRenderOptions(DrawingContext canvas, Func<RenderOptions, RenderOptions> action)
+    private async void OnImageSizeChanged(object? sender, SizeChangedEventArgs e)
     {
-        // WORKAROUND: There's currently no public API to specify custom RenderOptions for DrawingContext.
-        // https://github.com/AvaloniaUI/Avalonia/issues/2464
-        var propertyInfo = canvas.GetType().GetProperty("RenderOptions")!;
-        var renderOptions = (RenderOptions)propertyInfo.GetValue(canvas)!;
-        propertyInfo.SetValue(canvas, action(renderOptions));
-    }
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null)
+        {
+            return;
+        }
 
-    private static SKBitmap ToSKBitmap(Bitmap bitmap)
-    {
-        var result = new SKBitmap(bitmap.PixelSize.Width, bitmap.PixelSize.Height);
-        bitmap.CopyPixels(new PixelRect(bitmap.PixelSize), result.GetPixels(), result.ByteCount, result.RowBytes);
-        return result;
+        var bitmap = Preview.Source;
+        if (bitmap == null)
+        {
+            return;
+        }
+
+        // Adjust image size to match device pixels.
+        var bitmapSize = bitmap.Size;
+        var width = bitmapSize.Width / topLevel.RenderScaling;
+
+        TextureHeightTextBox.Text = $"{Math.Ceiling(bitmapSize.Height)}";
+
+        if (double.IsNaN(Preview.Width) || Math.Abs(Preview.Width - width) > LayoutHelper.LayoutEpsilon)
+        {
+            Preview.Width = width;
+
+            // Wait for layout pass.
+            await Task.Yield();
+
+            ScrollArea.Offset = new Vector(ScrollArea.ScrollBarMaximum.X / 2, ScrollArea.Offset.Y);
+        }
     }
 }

@@ -21,6 +21,7 @@
     <PackageReference Include="Deadpikle.AvaloniaProgressRing" Version="0.10.2" />
     <PackageReference Include="System.Reactive" Version="6.0.0" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
+    <PackageReference Include="Unicode.net" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

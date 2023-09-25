@@ -1,11 +1,20 @@
-﻿using System;
+﻿using NeoSmart.Unicode;
+using System;
 using System.Globalization;
 using System.Linq;
+using XnaFontTextureGenerator.Model;
 
 namespace XnaFontTextureGenerator.Services;
 
 public class CharHelper
 {
+    public const string Placeholder = "\u25A1";
+
+    public static GlyphKinds GetKind(string chr)
+    {
+        return Emoji.IsEmoji(chr) ? GlyphKinds.Emoji : GlyphKinds.Regular;
+    }
+
     public static int ConvertToCode(string chr)
     {
         return chr.Length == 1 ? chr[0] : char.ConvertToUtf32(chr, 0);
