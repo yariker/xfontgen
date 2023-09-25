@@ -1,29 +1,23 @@
 $ErrorActionPreference = "Stop"
 
-Push-Location $PSScriptRoot
+pushd $PSScriptRoot
 
 try
 {
     if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
-
-        $Cygwin = "$env:SystemDrive\cygwin64\bin";
-
-        if (-not (Test-Path $Cygwin)) {
+        $Tar = "$env:SystemDrive\cygwin64\bin\tar.exe"
+        if (-not (Test-Path $Tar)) {
             Write-Error "Cygwin can not be found or not installed."
             exit -1
         }
-
-        if (($env:Path -split ';') -notcontains $Cygwin) {
-            $env:Path = $Cygwin + ";" + $env:Path
-        }
+    } else {
+        $Tar = "tar"
     }
 
     $Version = ./get-version.ps1
 
     Write-Host -ForegroundColor Yellow "`r`n#### Test ####`r`n"
-
     dotnet test --verbosity normal
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host -ForegroundColor Yellow "`r`n#### Publish ####"
 
@@ -35,13 +29,21 @@ try
         dotnet publish "src/XnaFontTextureGenerator.Desktop/XnaFontTextureGenerator.Desktop.csproj" `
             -p:PublishProfile=$Profile -p:VersionPrefix="$($Version.Prefix)" -p:VersionSuffix="$($Version.Suffix)" -c Release `
             -o "build/$Profile" -p:DebugType=None -p:DebugSymbols=false
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+        pushd "build/$Profile"
+
+        if ($Profile -like "linux-*") {
+            & $Tar -cvzf "../xfontgen.$Profile.tgz" *
+        } elseif ($Profile -like "osx-*") {
+            & $Tar -acf "../xfontgen.$Profile.zip" *.app
+        } elseif ($Profile -like "win-*") {
+            Compress-Archive -Path "*" -DestinationPath "../xfontgen.$Profile.zip" -Force
+        }
+
+        popd
     }
-
-    dir "build" -Include *.zip, *.tgz -Recurse | move -Destination "build" -Force
 }
 finally
 {
-    Pop-Location
+    popd
 }

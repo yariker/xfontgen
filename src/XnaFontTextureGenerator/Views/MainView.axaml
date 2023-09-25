@@ -328,7 +328,6 @@
                        Classes.dark="{Binding !LightMode}"
                        Classes.light="{Binding LightMode}">
                     <Image Name="Preview"
-                           PointerMoved=""
                            RenderOptions.BitmapInterpolationMode="None"
                            SizeChanged="OnImageSizeChanged"
                            Source="{Binding Texture}">
