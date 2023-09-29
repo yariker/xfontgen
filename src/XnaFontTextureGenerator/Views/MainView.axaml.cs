@@ -345,5 +345,21 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 
             ScrollArea.Offset = new Vector(ScrollArea.ScrollBarMaximum.X / 2, ScrollArea.Offset.Y);
         }
+        
+        UpdateScaleMargin();
+    }
+
+    private void OnRenderScaleChanged(object? sender, EventArgs e)
+    {
+        UpdateScaleMargin();
+    }
+
+    private void UpdateScaleMargin()
+    {
+        var scaleTransform = (ScaleTransform)Preview.RenderTransform!;
+        var size = Preview.Bounds.Size;
+
+        Preview.Margin = new Thickness(size.Width / 2 * (scaleTransform.ScaleX - 1),
+                                       size.Height / 2 * (scaleTransform.ScaleY - 1));
     }
 }

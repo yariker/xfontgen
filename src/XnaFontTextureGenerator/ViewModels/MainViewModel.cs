@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -39,6 +40,9 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _lightMode;
+
+    [ObservableProperty]
+    private double _scale = 1;
 
     [ObservableProperty]
     private bool _rendering;
@@ -275,11 +279,29 @@ public partial class MainViewModel : ViewModelBase
         _hoverIndex = -1;
     }
 
+    [RelayCommand]
+    protected void MouseWheel(PointerWheelEventArgs e)
+    {
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Delta.Y != 0)
+        {
+            const double step = 0.5;
+            Scale = Math.Clamp(Scale + Math.Sign(e.Delta.Y) * step, step, 7);
+            e.Handled = true;
+        }
+    }
+
+    [RelayCommand]
+    protected void ResetScale()
+    {
+        Scale = 1;
+    }
+
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
 
         if (e.PropertyName != nameof(LightMode) &&
+            e.PropertyName != nameof(Scale) &&
             e.PropertyName != nameof(Texture) &&
             e.PropertyName != nameof(Rendering) &&
             e.PropertyName != nameof(Tooltip))

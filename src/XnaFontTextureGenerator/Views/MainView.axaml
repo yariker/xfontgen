@@ -327,6 +327,13 @@
                        VerticalAlignment="Center"
                        Classes.dark="{Binding !LightMode}"
                        Classes.light="{Binding LightMode}">
+
+                    <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="PointerWheelChanged">
+                            <InvokeCommandAction Command="{Binding MouseWheelCommand}" PassEventArgsToCommand="True" />
+                        </EventTriggerBehavior>
+                    </Interaction.Behaviors>
+
                     <Image Name="Preview"
                            RenderOptions.BitmapInterpolationMode="None"
                            SizeChanged="OnImageSizeChanged"
@@ -339,7 +346,11 @@
                                 <InvokeCommandAction Command="{Binding MouseMoveCommand}" />
                             </EventTriggerBehavior>
                         </Interaction.Behaviors>
+                        <Image.RenderTransform>
+                            <ScaleTransform Changed="OnRenderScaleChanged" ScaleX="{Binding Scale}" ScaleY="{Binding Scale}" />
+                        </Image.RenderTransform>
                     </Image>
+
                 </Panel>
 
             </ScrollViewer>
@@ -358,15 +369,32 @@
                 </Border>
             </Popup>
 
-            <ToggleButton Margin="16"
-                          HorizontalAlignment="Left"
-                          VerticalAlignment="Top"
-                          IsChecked="{Binding LightMode}"
-                          ToolTip.Tip="Toggle light/dark background">
-                <Rectangle Width="16"
-                           Height="16"
-                           Fill="{StaticResource LightCheckerboardBrush}" />
-            </ToggleButton>
+            <StackPanel Margin="16"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal">
+
+                <ToggleButton IsChecked="{Binding LightMode}" ToolTip.Tip="Toggle light/dark background">
+                    <Rectangle Width="16"
+                               Height="16"
+                               Fill="{StaticResource LightCheckerboardBrush}" />
+                </ToggleButton>
+
+                <Button Margin="8,0,0,0"
+                        Command="{Binding ResetScaleCommand}"
+                        IsVisible="{Binding Scale, Converter={x:Static views:Converters.IsNotOneConverter}}"
+                        ToolTip.Tip="Actual size">
+                    <TextBlock Width="16"
+                               Height="16"
+                               Text="↕"
+                               TextAlignment="Center">
+                        <TextBlock.RenderTransform>
+                            <RotateTransform Angle="45" />
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                </Button>
+
+            </StackPanel>
 
             <apr:ProgressRing Name="ProgressRing"
                               Width="80"

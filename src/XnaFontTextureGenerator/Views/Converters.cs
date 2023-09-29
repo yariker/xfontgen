@@ -6,12 +6,16 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Input;
+using Avalonia.Layout;
 using XnaFontTextureGenerator.Model;
 
 namespace XnaFontTextureGenerator.Views;
 
 public static class Converters
 {
+    public static readonly FuncValueConverter<double, bool> IsNotOneConverter = new(
+        x => Math.Abs(x - 1) > LayoutHelper.LayoutEpsilon);
+
     public static readonly FuncValueConverter<IEnumerable<object>?, string?> ValidationErrorConverter = new(
         x => x?.Cast<Exception>().FirstOrDefault()?.Message.TrimEnd('.'));
 
