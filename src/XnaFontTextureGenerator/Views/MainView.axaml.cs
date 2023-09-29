@@ -102,9 +102,11 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
 
         if (metadata.DropShadow != null)
         {
+            var blurSigma = SKMaskFilter.ConvertRadiusToSigma(metadata.DropShadow.Blur);
+
             using var dropShadow = SKImageFilter.CreateDropShadow(
                 metadata.DropShadow.OffsetX, metadata.DropShadow.OffsetY,
-                metadata.DropShadow.Blur, metadata.DropShadow.Blur,
+                blurSigma, blurSigma,
                 metadata.DropShadow.Color);
 
             glyphPaint.ImageFilter = dropShadow;
