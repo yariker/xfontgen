@@ -170,21 +170,23 @@
                 <TextBlock Grid.Row="0"
                            Grid.Column="0"
                            Classes="label"
-                           Text="Kerning (px)" />
+                           Text="Kerning" />
                 <NumericUpDown Grid.Row="1"
                                Grid.Column="0"
                                FormatString="F0"
                                Minimum="-1"
                                TextConverter="{x:Static views:Converters.KerningConverter}"
+                               ToolTip.Tip="Spacing between characters (px)"
                                Value="{Binding Kerning}" />
                 <TextBlock Grid.Row="0"
                            Grid.Column="2"
                            Classes="label"
-                           Text="Leading (px)" />
+                           Text="Leading" />
                 <NumericUpDown Grid.Row="1"
                                Grid.Column="2"
                                FormatString="F0"
                                Minimum="0"
+                               ToolTip.Tip="Spacing between lines (px)"
                                Value="{Binding Leading}" />
             </Grid>
 
@@ -209,7 +211,7 @@
                 <TextBlock Grid.Row="0"
                            Grid.Column="0"
                            Classes="label"
-                           Text="Width (px)" />
+                           Text="Width" />
                 <NumericUpDown Grid.Row="1"
                                Grid.Column="0"
                                Increment="0.25"
@@ -245,6 +247,7 @@
                 <NumericUpDown Grid.Row="1"
                                Grid.Column="0"
                                Minimum="0"
+                               ToolTip.Tip="Shadow blur radius (px)"
                                Value="{Binding ShadowBlur}" />
                 <TextBlock Grid.Row="0"
                            Grid.Column="2"
@@ -284,14 +287,14 @@
                          Grid.Column="0"
                          Text="{Binding TextureWidth}"
                          UseFloatingWatermark="True"
-                         Watermark="Texture width (px)" />
+                         Watermark="Texture width" />
                 <TextBox Name="TextureHeightTextBox"
                          Grid.Column="2"
                          Foreground="Gray"
                          IsReadOnly="True"
                          Text="0"
                          UseFloatingWatermark="True"
-                         Watermark="Texture height (px)" />
+                         Watermark="Texture height" />
             </Grid>
 
             <!--  Import/export buttons  -->

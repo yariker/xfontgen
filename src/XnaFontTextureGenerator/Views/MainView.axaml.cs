@@ -171,7 +171,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             {
                 chr = CharHelper.Placeholder;
             }
-
+            
             var text = new FormattedText(chr, culture, flow, typeface, metadata.FontSize, foreground);
             var height = (int)Math.Ceiling(text.Height);
             var geometry = GetGeometry(text, outline, out var glyphBounds);
@@ -361,7 +361,7 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
         var scaleTransform = (ScaleTransform)Preview.RenderTransform!;
         var size = Preview.Bounds.Size;
 
-        Preview.Margin = new Thickness(size.Width / 2 * (scaleTransform.ScaleX - 1),
-                                       size.Height / 2 * (scaleTransform.ScaleY - 1));
+        Preview.Margin = new Thickness(size.Width / 2 * (scaleTransform.ScaleX - 1) - 2,
+                                       size.Height / 2 * (scaleTransform.ScaleY - 1) - 2);
     }
 }

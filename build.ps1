@@ -4,17 +4,14 @@ pushd $PSScriptRoot
 
 try
 {
-    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT)
-    {
+    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
         $Cygwin = "$env:SystemDrive\cygwin64\bin";
 
-        if (-not (Test-Path $Cygwin))
-        {
+        if (-not (Test-Path $Cygwin)) {
             throw "Cygwin can not be found or not installed."
         }
 
-        if (($env:Path -split ';') -notcontains $Cygwin)
-        {
+        if (($env:Path -split ';') -notcontains $Cygwin) {
             $env:Path = $Cygwin + ';' + $env:Path
         }
     }
