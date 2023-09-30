@@ -317,7 +317,7 @@
 
             <ScrollViewer Name="ScrollArea"
                           AllowAutoHide="False"
-                          Background="DarkGray"
+                          Background="{DynamicResource ThemeControlMidHighBrush}"
                           HorizontalScrollBarVisibility="Visible"
                           VerticalScrollBarVisibility="Visible">
 
