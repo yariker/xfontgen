@@ -35,13 +35,13 @@ When adding the generated PNG texture to your content pipeline, make sure to set
 
 Such a sprite font can then be loaded into the `SpriteFont` object:
 
-```
+```csharp
 _spriteFont = Content.Load<SpriteFont>("TestFont");
 ```
 
 Which can then be drawn by regular means of `SpriteBatch.DrawString` as follows:
 
-```
+```csharp
 _spriteBatch.Begin();
 
 _spriteBatch.DrawString(_spriteFont, "The quick brown fox\r\njumps over the lazy dog.", 
@@ -56,4 +56,4 @@ _spriteBatch.End();
 
 ## License
 
-Code licensed under the [MIT License](LICENSE).
+Code licensed under the [MIT License](LICENSE.txt).
