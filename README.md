@@ -24,10 +24,23 @@ Executing the app requires [.NET 7.0 Runtime](https://dotnet.microsoft.com/downl
 
 ### Adding bitmap-font texture to your project
 
-When adding the generated PNG texture to your content pipeline, make sure to set the following properties:
-* Importer – Texture Importer
-* Processor – Font Texture
-* First Character – Should match "Min char"
+<table>
+    <tr style="border: 0px;">
+        <td style="border: 0px;">
+            <img src='doc/Mgcb.png' />
+        </td>
+        <td style="border: 0px; vertical-align: top;">
+            When adding the generated PNG texture to your content pipeline, make sure to set the following properties:
+            <p>
+            <ul>
+                <li>Importer â€“ Texture Importer</li>
+                <li>Processor â€“ Font Texture</li>
+                <li>First Character â€“ Should match "Min char"</li>
+            </ul>
+            </p>
+        </td>
+    </tr>
+</table>
 
 The drawing can then be done by regular means of `SpriteBatch.DrawString`.
 
