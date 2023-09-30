@@ -24,25 +24,35 @@ Executing the app requires [.NET 7.0 Runtime](https://dotnet.microsoft.com/downl
 
 ### Adding bitmap-font texture to your project
 
-<table>
-    <tr style="border: 0px;">
-        <td style="border: 0px;">
-            <img src='doc/Mgcb.png' />
-        </td>
-        <td style="border: 0px; vertical-align: top;">
-            When adding the generated PNG texture to your content pipeline, make sure to set the following properties:
-            <p>
-            <ul>
-                <li>Importer – Texture Importer</li>
-                <li>Processor – Font Texture</li>
-                <li>First Character – Should match "Min char"</li>
-            </ul>
-            </p>
-        </td>
-    </tr>
-</table>
+When adding the generated PNG texture to your content pipeline, make sure to set the following content settings:
+* Importer – Texture Importer
+* Processor – Font Texture
+* First Character – Should match "Min char"
 
-The drawing can then be done by regular means of `SpriteBatch.DrawString`.
+<p align='center'>
+  <img src='doc/Mgcb.png' width='250'/>
+</p>
+
+Such a sprite font can then be loaded into the `SpriteFont` object:
+
+```
+_spriteFont = Content.Load<SpriteFont>("TestFont");
+```
+
+Which can then be drawn by regular means of `SpriteBatch.DrawString` as follows:
+
+```
+_spriteBatch.Begin();
+
+_spriteBatch.DrawString(_spriteFont, "The quick brown fox\r\njumps over the lazy dog.", 
+    new Vector2(30, 30), Color.MediumSpringGreen);
+
+_spriteBatch.End();
+```
+
+<p align='center'>
+  <img src='doc/Demo.png' width='500' />
+</p>
 
 ## License
 
