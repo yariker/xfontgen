@@ -176,25 +176,23 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             var height = (int)Math.Ceiling(text.Height);
             var geometry = GetGeometry(text, outline, out var glyphBounds);
             var width = (int)Math.Ceiling(glyphBounds.Width);
+            var paddingRight = padding.Right;
 
             if (width == 0)
             {
-                // Special case for whitespace.
                 width = Math.Max(minWidth, (int)Math.Ceiling(text.WidthIncludingTrailingWhitespace));
             }
-            else
+            else if (metadata.Kerning == TextureMetadata.AutomaticKerning)
             {
-                var paddingRight = padding.Right;
-
-                if (metadata.Kerning == TextureMetadata.AutomaticKerning)
+                var kerning = text.WidthIncludingTrailingWhitespace - glyphBounds.Width;
+                if (kerning > paddingRight)
                 {
-                    var kerning = text.WidthIncludingTrailingWhitespace - glyphBounds.Width;
-                    if (kerning > paddingRight)
-                    {
-                        paddingRight = kerning;
-                    }
+                    paddingRight = kerning;
                 }
+            }
 
+            if (glyphBounds.Width > 0 || text.WidthIncludingTrailingWhitespace > 0)
+            {
                 width += (int)Math.Ceiling(padding.Left + paddingRight);
             }
 
