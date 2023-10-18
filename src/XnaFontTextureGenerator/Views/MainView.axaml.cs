@@ -242,16 +242,15 @@ public partial class MainView : UserControl, IFontTextureRenderer, IMessageBox
             canvas.FillRectangle(background, new Rect(bitmap.Size));
         }
 
-        canvas.SetRenderOptions(
-            options => options with
-            {
-                EdgeMode = metadata.Antialiased
-                    ? EdgeMode.Antialias
-                    : EdgeMode.Aliased,
-                TextRenderingMode = metadata.Antialiased
-                    ? subpixel ? TextRenderingMode.SubpixelAntialias : TextRenderingMode.Antialias
-                    : TextRenderingMode.Alias,
-            });
+        canvas.PushRenderOptions(new RenderOptions
+        {
+            EdgeMode = metadata.Antialiased
+                ? EdgeMode.Antialias
+                : EdgeMode.Aliased,
+            TextRenderingMode = metadata.Antialiased
+                ? subpixel ? TextRenderingMode.SubpixelAntialias : TextRenderingMode.Antialias
+                : TextRenderingMode.Alias,
+        });
 
         if (outline != null)
         {
