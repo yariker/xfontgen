@@ -20,7 +20,7 @@ The app can be run on the following platforms:
 * Linux (Debian 10+/Ubuntu 18.04+/Fedora 36+) (x64)
 * macOS 10.15+ (x64)
 
-Executing the app requires [.NET 7.0 Runtime](https://dotnet.microsoft.com/download/dotnet/7.0) to be installed.
+Executing the app requires [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) to be installed.
 
 ### Adding bitmap-font texture to your project
 
