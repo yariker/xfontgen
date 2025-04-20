@@ -6,15 +6,15 @@ namespace XnaFontTextureGenerator.Model;
 
 public class CombinedFontStyle
 {
-    public static readonly IReadOnlyList<CombinedFontStyle> Styles = new[]
-    {
+    public static readonly IReadOnlyList<CombinedFontStyle> Styles =
+    [
         new CombinedFontStyle("Regular", FontWeight.Normal, FontStretch.Normal, FontStyle.Normal),
         new CombinedFontStyle("Italic", FontWeight.Normal, FontStretch.Normal, FontStyle.Italic),
         new CombinedFontStyle("Semi Bold", FontWeight.SemiBold, FontStretch.Normal, FontStyle.Normal),
         new CombinedFontStyle("Semi Bold, Italic", FontWeight.SemiBold, FontStretch.Normal, FontStyle.Italic),
         new CombinedFontStyle("Bold", FontWeight.Bold, FontStretch.Normal, FontStyle.Normal),
-        new CombinedFontStyle("Bold, Italic", FontWeight.Bold, FontStretch.Normal, FontStyle.Italic),
-    };
+        new CombinedFontStyle("Bold, Italic", FontWeight.Bold, FontStretch.Normal, FontStyle.Italic)
+    ];
 
     public CombinedFontStyle(string name, FontWeight fontWeight, FontStretch fontStretch, FontStyle fontStyle)
     {

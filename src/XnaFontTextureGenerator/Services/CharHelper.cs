@@ -56,6 +56,6 @@ public class CharHelper
 
         return count > 0
             ? Enumerable.Range(minChar, count).Select(ConvertFromCode).ToArray()
-            : Array.Empty<string>();
+            : [];
     }
 }

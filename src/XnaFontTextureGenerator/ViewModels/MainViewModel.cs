@@ -22,7 +22,7 @@ using XnaFontTextureGenerator.Services;
 
 namespace XnaFontTextureGenerator.ViewModels;
 
-public partial class MainViewModel : ViewModelBase
+public partial class MainViewModel : ObservableObject
 {
     private readonly SynchronizationContext _synchronizationContext = SynchronizationContext.Current!;
     private readonly Subject<TextureMetadata> _renderQueue = new();
@@ -166,7 +166,7 @@ public partial class MainViewModel : ViewModelBase
         storageFile ??= await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Export Font Texture",
-            FileTypeChoices = new[] { FilePickerFileTypes.ImagePng },
+            FileTypeChoices = [FilePickerFileTypes.ImagePng],
             DefaultExtension = ".png",
             ShowOverwritePrompt = true,
         });
@@ -205,7 +205,7 @@ public partial class MainViewModel : ViewModelBase
         storageFile ??= (await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Font Texture",
-            FileTypeFilter = new[] { FilePickerFileTypes.ImagePng },
+            FileTypeFilter = [FilePickerFileTypes.ImagePng],
             AllowMultiple = false,
         })).SingleOrDefault();
 

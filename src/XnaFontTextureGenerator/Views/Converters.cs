@@ -33,22 +33,19 @@ public static class Converters
 
     public static readonly IValueConverter KerningConverter = new AutoInt32Converter(TextureMetadata.AutomaticKerning);
 
-    private class AutoInt32Converter : IValueConverter
+    private class AutoInt32Converter(int auto) : IValueConverter
     {
         private const string Auto = "Auto";
-        private readonly int _auto;
-
-        public AutoInt32Converter(int auto) => _auto = auto;
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            return System.Convert.ToInt32(value, culture) == _auto ? _auto : System.Convert.ToDouble(value, culture);
+            return System.Convert.ToInt32(value, culture) == auto ? auto : System.Convert.ToDouble(value, culture);
         }
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             var i = System.Convert.ToInt32(value, culture);
-            return i == _auto ? Auto : i.ToString(culture);
+            return i == auto ? Auto : i.ToString(culture);
         }
     }
 }
