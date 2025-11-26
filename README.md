@@ -12,15 +12,15 @@ included in [MonoGame](https://github.com/MonoGame/MonoGame) and [FNA](https://g
 
 ## Download and usage
 
-Get the latest version in [Releases](https://github.com/yariker/xfontgen/releases), unzip it to a folder,
+Get the latest version from the [Releases](https://github.com/yariker/xfontgen/releases) page, extract it to a folder,
 and run `xfontgen`.
 
-The app can be run on the following platforms:
-* Windows 10+ (x64)
-* Linux (Debian 10+/Ubuntu 18.04+/Fedora 36+) (x64)
-* macOS 10.15+ (x64)
+The application supports the following platforms:
+* Windows 10 or later (x64)
+* Linux: Debian 10+, Ubuntu 18.04+, Fedora 36+ (x64)
+* macOS 10.15 or later (x64)
 
-Executing the app requires [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) to be installed.
+To run the application, the [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) must be installed.
 
 ### Adding bitmap-font texture to your project
 
