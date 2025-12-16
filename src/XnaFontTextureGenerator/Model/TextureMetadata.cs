@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using Avalonia.Media;
 
 namespace XnaFontTextureGenerator.Model;
@@ -54,8 +55,9 @@ public record TextureMetadata
         {
             return JsonSerializer.Deserialize<TextureMetadata>(json);
         }
-        catch (JsonException)
+        catch (JsonException e)
         {
+            Debug.WriteLine(e.ToString());
             return null;
         }
     }

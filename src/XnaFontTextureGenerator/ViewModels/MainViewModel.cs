@@ -161,7 +161,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    protected async Task ExportAsync(IStorageFile? storageFile = null)
+    public async Task ExportAsync(IStorageFile? storageFile = null)
     {
         storageFile ??= await _storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
@@ -200,7 +200,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    protected async Task ImportAsync(IStorageFile? storageFile = null)
+    public async Task ImportAsync(IStorageFile? storageFile = null)
     {
         storageFile ??= (await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
